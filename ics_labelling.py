@@ -180,25 +180,25 @@ def labelling(data, picked_data, file_path):
 
 
 if __name__ == "__main__":
-    # try:
-    alert_box('欢迎使用本程序', '欢迎')
-    data, picked_data, file_path = get_data()
-    picked_data = describe_data(picked_data)
-    app_path = config.get('app', 'app_path')
-    title_keyword = config.get('app', 'title_keyword')
-    window_object = activate_app(app_path, title_keyword)
-    activate_window(window_object)
-    maximize_window(window_object)
-    x_start, y_start, x_end, y_end = adjust_location()
-    switch_input_language()
-    login_ics(x_start, y_start, x_end, y_end)
-    labelling(data, picked_data, file_path)
-    alert_box('备注完毕，结果请查看%s文件，感谢使用！' % file_path, '退出程序')
-    # except:
-    #     alert_box('程序出现问题，正在退出程序，感谢使用！', '退出程序')
-    # finally:
-    #     if 'window_object' in locals():
-    #         choice = yes_no_box('是否关闭ICS应用？', '退出程序')
-    #         if choice == '是':
-    #             keyboard_write_so()
-    #             close_window(window_object)
+    try:
+        alert_box('欢迎使用本程序', '欢迎')
+        data, picked_data, file_path = get_data()
+        picked_data = describe_data(picked_data)
+        app_path = config.get('app', 'app_path')
+        title_keyword = config.get('app', 'title_keyword')
+        window_object = activate_app(app_path, title_keyword)
+        activate_window(window_object)
+        maximize_window(window_object)
+        x_start, y_start, x_end, y_end = adjust_location()
+        switch_input_language()
+        login_ics(x_start, y_start, x_end, y_end)
+        labelling(data, picked_data, file_path)
+        alert_box('备注完毕，结果请查看%s文件，感谢使用！' % file_path, '退出程序')
+    except:
+        alert_box('程序出现问题，正在退出程序，感谢使用！', '退出程序')
+    finally:
+        if 'window_object' in locals():
+            choice = yes_no_box('是否关闭ICS应用？', '退出程序')
+            if choice == '是':
+                keyboard_write_so()
+                close_window(window_object)
