@@ -12,13 +12,21 @@ import pypinyin
 from itertools import product
 
 
-check_airports = ['CAN', 'URC', 'PKX', 'SYX', 'PVG', 'HAK', 'SHA']
+check_airports = {
+    'CAN': True,
+    'URC': False,
+    'PKX': False,
+    'SYX': False,
+    'PVG': False,
+    'HAK': False,
+    'SHA': False
+}
 upgrade_miles = pd.read_excel('%s%supgrade_miles.xlsx' % (source_dir, os.sep), index_col='destination')
 upgrade_miles_airports = upgrade_miles.index.to_list()
 
 
 def create_label(row):
-    label = 'CKIN '
+    label = ''
     route_pattern = re.compile(r'[A-Za-z]{3}-[A-Za-z]{3}')
     if route_pattern.match(row['航段']):
         destination = row['航段'].split('-')[-1]
@@ -26,15 +34,11 @@ def create_label(row):
             if row['可用里程余额'] >= upgrade_miles.loc[destination]['miles']:
                 label += 'LCSC '
         else:
-            label += 'ZBBZ '
             label += 'LCSC '
-            # return label
     if row['近三月到期里程'] > 0:
         label += 'GQLC%s ' % row['近三月到期里程']
     if row['近一年购买升舱次数'] > 0:
         label += 'XFSC '
-    # if row['近一年购买预选座位次数'] > 0:
-    #     label += 'XFXZ '
     if row['近一年购买一人多座次数'] > 0:
         label += 'XFDZ '
     if row['差旅类票价不敏感旅客'] == '是':
@@ -66,8 +70,7 @@ def get_data():
                 continue
             else:
                 os._exit(0)
-        if '已查' not in data.columns:
-            data['已查'] = ''
+        data = create_new_columns(data, '已查', '标签', '姓名')
         picked_data = filtering_data(data, date)
         if picked_data.shape[0] == 0:
             select = yes_no_box('所选文件无符合条件数据。是否重新选择文件？', '无服务条件数据')
@@ -82,6 +85,13 @@ def get_data():
         return data, picked_data, file_path
 
 
+def create_new_columns(data, *args):
+    for column in args:
+        if column not in data.columns:
+            data[column] = ''
+    return data
+
+
 def save_data(data, file_path):
     data['会员卡号'] = data['会员卡号'].apply(lambda x: '\t' + x)
     data['OC航班号'] = data['OC航班号'].apply(lambda x: '\t' + x)
@@ -91,7 +101,7 @@ def save_data(data, file_path):
 
 def filtering_data(data, date):
     data.replace('\t', '', regex=True, inplace=True)
-    data = data[(data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & data['OD始发机场'].isin(check_airports) == True]
+    data = data[(data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & data['OD始发机场'].isin(list(check_airports.keys())) == True]
     if '近一年购买升舱次数' not in data.columns:
         data['近一年购买升舱次数'] = data['近一年购买登机口升舱次数'] + data['近一年购买候补升舱次数'] + data['近一年购买休息室升舱次数']
     if '近三月到期里程' not in data.columns:
@@ -117,17 +127,14 @@ def labelling(data, picked_data, file_path):
     try:
         for index_, row in picked_data.iterrows():
             label = create_label(row)
-            if label == 'CKIN ':
+            if label == '':
                 data.loc[index_, '已查'] = '不符合条件'
-                continue
-            if label.startswith('CKIN ZBBZ '):
-                data.loc[index_, '已查'] = '符合条件暂不备注'
                 continue
             flt_num = row['OC承运人'] + row['OC航班号']
             flt_date = row['飞行日期']
             flt_date = change_ics_date_format(flt_date)
             ticket = row['电子客票号']
-            station = row['航段始发机场']
+            station = row['OD始发机场']
             keyboard_write_etkd(ticket)
             text = copy_text(x_start, y_start, x_end, y_end)
             if not text_has_ticket(text):
@@ -142,37 +149,42 @@ def labelling(data, picked_data, file_path):
             else:
                 data.loc[index_, '已查'] = '客票信息提取异常'
                 continue
-            name_list = [''.join(name) for name in product(*pypinyin.pinyin(pax_name, style=pypinyin.NORMAL, heteronym=True))]
-            found = False
-            for name in name_list:
-                if not found:
-                    if '/' in name:
-                        name = name.split('/')
-                        name = name[0] + '/' + name[-1][:4]
-                    keyboard_write_pd(flt_num, flt_date, '1 %s' % name, cabin_class='', station=station)
-                    text = copy_text(x_start, y_start, x_end, y_end)
-                    if text_find_index(text):
-                        _, end_index = text_find_index(text)
-                        for i in range(1, int(end_index) + 1):
-                            keyboard_write_pr(i)
-                            text = copy_text(x_start, y_start, x_end, y_end)
-                            ics_data = ics_data_collector.details_extract(text)
-                            if not ics_data:
-                                continue
-                            if ticket == ics_data['tkt']:
-                                if ics_data['bn'] != '':
-                                    keyboard_write_pu(label)
-                                else:
-                                    keyboard_write_pre_pu(label)
-                                found = True
-                                break
+            data.loc[index_, '姓名'] = pax_name
+            data.loc[index_, '标签'] = label
+            if check_airports[station]:
+                name_list = [''.join(name) for name in product(*pypinyin.pinyin(pax_name, style=pypinyin.NORMAL, heteronym=True))]
+                found = False
+                for name in name_list:
+                    if not found:
+                        if '/' in name:
+                            name = name.split('/')
+                            name = name[0] + '/' + name[-1][:4]
+                        keyboard_write_pd(flt_num, flt_date, '1 %s' % name, cabin_class='', station=station)
+                        text = copy_text(x_start, y_start, x_end, y_end)
+                        if text_find_index(text):
+                            _, end_index = text_find_index(text)
+                            for i in range(1, int(end_index) + 1):
+                                keyboard_write_pr(i)
+                                text = copy_text(x_start, y_start, x_end, y_end)
+                                ics_data = ics_data_collector.details_extract(text)
+                                if not ics_data:
+                                    continue
+                                if ticket == ics_data['tkt']:
+                                    label = 'CKIN ' + label
+                                    if ics_data['bn'] != '':
+                                        keyboard_write_pu(label)
+                                    else:
+                                        keyboard_write_pre_pu(label)
+                                    found = True
+                                    break
+                    else:
+                        break
+                if found:
+                    data.loc[index_, '已查'] = '是'
                 else:
-                    break
-            if found:
-                data.loc[index_, '已查'] = '是'
+                    data.loc[index_, '已查'] = '该客票未能提取旅客'
             else:
-                data.loc[index_, '已查'] = '该客票未能提取旅客'
-
+                data.loc[index_, '已查'] = '未备注'
     # except:
     #     pass
     finally:
