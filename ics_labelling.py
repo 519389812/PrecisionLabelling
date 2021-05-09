@@ -130,28 +130,28 @@ def labelling(data, picked_data, file_path):
             if label == '':
                 data.loc[index_, '已查'] = '不符合条件'
                 continue
-            flt_num = row['OC承运人'] + row['OC航班号']
-            flt_date = row['飞行日期']
-            flt_date = change_ics_date_format(flt_date)
-            ticket = row['电子客票号']
-            station = row['OD始发机场']
-            keyboard_write_etkd(ticket)
-            text = copy_text(x_start, y_start, x_end, y_end)
-            if not text_has_ticket(text):
-                data.loc[index_, '已查'] = '未能提取客票'
-                continue
-            ticket_data = ticket_data_collector.details_extract(text)
-            if ticket_data:
-                if ticket_data['first_name'] != '':
-                    pax_name = ticket_data['last_name'] + '/' + ticket_data['first_name']
-                else:
-                    pax_name = ticket_data['last_name']
-            else:
-                data.loc[index_, '已查'] = '客票信息提取异常'
-                continue
-            data.loc[index_, '姓名'] = pax_name
             data.loc[index_, '标签'] = label
+            station = row['OD始发机场']
             if check_airports[station]:
+                flt_num = row['OC承运人'] + row['OC航班号']
+                flt_date = row['飞行日期']
+                flt_date = change_ics_date_format(flt_date)
+                ticket = row['电子客票号']
+                keyboard_write_etkd(ticket)
+                text = copy_text(x_start, y_start, x_end, y_end)
+                if not text_has_ticket(text):
+                    data.loc[index_, '已查'] = '未能提取客票'
+                    continue
+                ticket_data = ticket_data_collector.details_extract(text)
+                if ticket_data:
+                    if ticket_data['first_name'] != '':
+                        pax_name = ticket_data['last_name'] + '/' + ticket_data['first_name']
+                    else:
+                        pax_name = ticket_data['last_name']
+                else:
+                    data.loc[index_, '已查'] = '客票信息提取异常'
+                    continue
+                data.loc[index_, '姓名'] = pax_name
                 name_list = [''.join(name) for name in product(*pypinyin.pinyin(pax_name, style=pypinyin.NORMAL, heteronym=True))]
                 found = False
                 for name in name_list:
