@@ -159,6 +159,8 @@ def labelling(data, picked_data, file_path):
                         if '/' in name:
                             name = name.split('/')
                             name = name[0] + '/' + name[-1][:4]
+                        else:
+                            name = name[:12]
                         keyboard_write_pd(flt_num, flt_date, '1 %s' % name, cabin_class='', station=station)
                         text = copy_text(x_start, y_start, x_end, y_end)
                         if text_find_index(text):
