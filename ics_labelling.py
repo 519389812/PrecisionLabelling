@@ -10,41 +10,13 @@ from common_func import *
 import pandas as pd
 import pypinyin
 from itertools import product
+from settings import check_airports
 
 
-check_airports = {
-    'CAN': True,
-    'URC': False,
-    'PKX': False,
-    'SYX': False,
-    'PVG': False,
-    'HAK': False,
-    'SHA': False
-}
-upgrade_miles = pd.read_excel('%s%supgrade_miles.xlsx' % (source_dir, os.sep), index_col='destination')
-upgrade_miles_airports = upgrade_miles.index.to_list()
-
-
-def create_label(row):
-    label = ''
-    route_pattern = re.compile(r'[A-Za-z]{3}-[A-Za-z]{3}')
-    if route_pattern.match(row['航段']):
-        destination = row['航段'].split('-')[-1]
-        if row['seat_class'] not in ['F', 'C', 'D', 'I', 'J', 'O']:
-            if destination in upgrade_miles_airports:
-                if row['可用里程余额'] >= upgrade_miles.loc[destination]['miles']:
-                    label += 'LCSC '
-            else:
-                label += 'LCSC '
-    if row['近三月到期里程'] > 0:
-        label += 'GQLC%s ' % row['近三月到期里程']
-    if row['近一年购买升舱次数'] > 0:
-        label += 'XFSC '
-    if row['近一年购买一人多座次数'] > 0:
-        label += 'XFDZ '
-    if row['差旅类票价不敏感旅客'] == '是':
-        label += 'PJBMG '
-    return label
+upgrade_miles = pd.read_excel('%s%supgrade_miles.xlsx' % (source_dir, os.sep))
+upgrade_miles.fillna('', inplace=True)
+upgrade_miles['city_pair'] = upgrade_miles['departure'] + '-' + upgrade_miles['destination']
+upgrade_miles.set_index(['city_pair'], inplace=True)
 
 
 def get_data():
@@ -100,6 +72,20 @@ def save_data(data, file_path):
     data.to_csv(file_path, index=False)
 
 
+def create_filter_condition():
+    filter_condition = []
+    for index_ in list(upgrade_miles.index):
+        filter_condition.append("((data['OC母舱位'] == 'Y') & (data['航段性质'] != '国内') & (data['航段'] == '%s') & (data['可用里程余额'] >= upgrade_miles.loc['%s', 'miles_y_to_j']))" % (index_, index_))
+        if upgrade_miles.loc[index_, 'miles_j_to_f'] != '':
+            filter_condition.append("((data['OC母舱位'] == 'J') & (data['航段性质'] != '国内') & (data['航段'] == '%s') & (data['可用里程余额'] >= upgrade_miles.loc['%s', 'miles_j_to_f']))" % (index_, index_))
+    filter_condition = ' | '.join(filter_condition)
+    filter_condition += " | ((data['航段性质'] == '国内') & (data['OC母舱位'] == 'Y') & (data['OC子舱位'] != 'X') & (data['可用里程余额'] >= 20000))"
+    filter_condition += "| (data['近三月到期里程'] >= 6000)"
+    filter_condition += "| (data['近一年购买升舱次数'] > 0) | (data['近一年购买一人多座次数'] > 0) | (data['差旅类票价不敏感旅客'] == '是')"
+    filter_condition = "data[%s]" % filter_condition
+    return filter_condition
+
+
 def filtering_data(data, date):
     data.replace('\t', '', regex=True, inplace=True)
     data = data[(data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & data['OD始发机场'].isin(list(check_airports.keys())) == True]
@@ -107,9 +93,30 @@ def filtering_data(data, date):
         data['近一年购买升舱次数'] = data['近一年购买登机口升舱次数'] + data['近一年购买候补升舱次数'] + data['近一年购买休息室升舱次数']
     if '近三月到期里程' not in data.columns:
         data['近三月到期里程'] = data['本月到期里程'] + data['下月到期里程'] + data['下下月到期里程']
-    data = data[(data['可用里程余额'] >= 20000) | (data['近三月到期里程'] > 3000) | (data['近一年购买升舱次数'] > 0) |
-                (data['近一年购买一人多座次数'] > 0) | (data['差旅类票价不敏感旅客'] == '是')]
+    filter_condition = create_filter_condition()
+    data = eval(filter_condition)
     return data
+
+
+def create_label(row):
+    label = ''
+    if row['OC母舱位'] == 'Y' and row['航段性质'] != '国内' and (row['航段'] in list(upgrade_miles.index)):
+        if row['可用里程余额'] >= upgrade_miles.loc[row['航段'], 'miles_y_to_j']:
+            label += 'LCSC '
+    elif row['OC母舱位'] == 'J' and row['航段性质'] != '国内' and (row['航段'] in list(upgrade_miles.index)) and upgrade_miles.loc[row['航段'], 'miles_j_to_f'] != '':
+        if row['可用里程余额'] >= upgrade_miles.loc[row['航段'], 'miles_j_to_f']:
+            label += 'LCSC '
+    elif row['OC母舱位'] == 'Y' and row['航段性质'] == '国内' and row['可用里程余额'] > 20000:
+        label += 'LCSC '
+    if row['近三月到期里程'] > 0:
+        label += 'LCGQ '
+    if row['近一年购买升舱次数'] > 0:
+        label += 'XFSC '
+    if row['近一年购买一人多座次数'] > 0:
+        label += 'XFDZ '
+    if row['差旅类票价不敏感旅客'] == '是':
+        label += 'PJBMG '
+    return label
 
 
 def describe_data(data):
