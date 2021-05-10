@@ -30,11 +30,12 @@ def create_label(row):
     route_pattern = re.compile(r'[A-Za-z]{3}-[A-Za-z]{3}')
     if route_pattern.match(row['航段']):
         destination = row['航段'].split('-')[-1]
-        if destination in upgrade_miles_airports:
-            if row['可用里程余额'] >= upgrade_miles.loc[destination]['miles']:
+        if row['seat_class'] not in ['F', 'C', 'D', 'I', 'J', 'O']:
+            if destination in upgrade_miles_airports:
+                if row['可用里程余额'] >= upgrade_miles.loc[destination]['miles']:
+                    label += 'LCSC '
+            else:
                 label += 'LCSC '
-        else:
-            label += 'LCSC '
     if row['近三月到期里程'] > 0:
         label += 'GQLC%s ' % row['近三月到期里程']
     if row['近一年购买升舱次数'] > 0:
@@ -106,7 +107,7 @@ def filtering_data(data, date):
         data['近一年购买升舱次数'] = data['近一年购买登机口升舱次数'] + data['近一年购买候补升舱次数'] + data['近一年购买休息室升舱次数']
     if '近三月到期里程' not in data.columns:
         data['近三月到期里程'] = data['本月到期里程'] + data['下月到期里程'] + data['下下月到期里程']
-    data = data[(data['可用里程余额'] >= 20000) | (data['近三月到期里程'] > 0) | (data['近一年购买升舱次数'] > 0) |
+    data = data[(data['可用里程余额'] >= 20000) | (data['近三月到期里程'] > 3000) | (data['近一年购买升舱次数'] > 0) |
                 (data['近一年购买一人多座次数'] > 0) | (data['差旅类票价不敏感旅客'] == '是')]
     return data
 
