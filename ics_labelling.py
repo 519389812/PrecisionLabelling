@@ -162,23 +162,28 @@ def labelling(data, picked_data, file_path):
                         else:
                             name = name[:12]
                         keyboard_write_pd(flt_num, flt_date, '1 %s' % name, cabin_class='', station=station)
-                        text = copy_text(x_start, y_start, x_end, y_end)
-                        if text_find_index(text):
-                            _, end_index = text_find_index(text)
-                            for i in range(1, int(end_index) + 1):
-                                keyboard_write_pr(i)
-                                text = copy_text(x_start, y_start, x_end, y_end)
+                        # text = copy_text(x_start, y_start, x_end, y_end)
+                        # if text_find_index(text):
+                        #     _, end_index = text_find_index(text)
+                        #     for i in range(1, int(end_index) + 1):
+                        i = 1
+                        while True:
+                            keyboard_write_pr(i)
+                            text = copy_text(x_start, y_start, x_end, y_end)
+                            if text_has_number(text):
                                 ics_data = ics_data_collector.details_extract(text)
-                                if not ics_data:
-                                    continue
-                                if ticket == ics_data['tkt']:
-                                    label = 'CKIN ' + label
-                                    if ics_data['bn'] != '':
-                                        keyboard_write_pu(label)
-                                    else:
-                                        keyboard_write_pre_pu(label)
-                                    found = True
-                                    break
+                                if ics_data:
+                                    if ticket == ics_data['tkt']:
+                                        label = 'CKIN ' + label
+                                        if ics_data['bn'] != '':
+                                            keyboard_write_pu(label)
+                                        else:
+                                            keyboard_write_pre_pu(label)
+                                        found = True
+                                        break
+                                i += 1
+                            else:
+                                break
                     else:
                         break
                 if found:

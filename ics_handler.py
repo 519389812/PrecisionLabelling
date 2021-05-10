@@ -223,3 +223,10 @@ def text_has_ticket(text):
         return False
     else:
         return True
+
+
+def text_has_number(text):
+    if 'ENTRY NBR' in text:
+        return False
+    else:
+        return True
