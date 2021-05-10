@@ -81,7 +81,7 @@ def create_filter_condition():
     filter_condition = ' | '.join(filter_condition)
     filter_condition += " | ((data['航段性质'] == '国内') & (data['OC母舱位'] == 'Y') & (data['OC子舱位'] != 'X') & (data['可用里程余额'] >= 20000))"
     filter_condition += "| (data['近三月到期里程'] >= 6000)"
-    filter_condition += "| (data['近一年购买升舱次数'] > 0) | (data['近一年购买一人多座次数'] > 0) | (data['差旅类票价不敏感旅客'] == '是')"
+    filter_condition += "| ((data['近一年购买升舱次数'] > 0) & (data['OC子舱位'] != 'X')) | (data['近一年购买一人多座次数'] > 0) | (data['差旅类票价不敏感旅客'] == '是')"
     filter_condition = "data[%s]" % filter_condition
     return filter_condition
 
