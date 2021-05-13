@@ -1,22 +1,10 @@
-from ics_handler import *
-from box_body import *
 from window_handler import *
-import os
-import configparser
 import ics_data_collector
 import ticket_data_collector
 from settings import *
 from common_func import *
-import pandas as pd
 import pypinyin
 from itertools import product
-from settings import check_airports
-
-
-upgrade_miles = pd.read_excel('%s%supgrade_miles.xlsx' % (source_dir, os.sep))
-upgrade_miles.fillna('', inplace=True)
-upgrade_miles['city_pair'] = upgrade_miles['departure'] + '-' + upgrade_miles['destination']
-upgrade_miles.set_index(['city_pair'], inplace=True)
 
 
 def get_data():
@@ -120,6 +108,10 @@ def create_label(row):
     return label
 
 
+def read_label(row):
+    label = row['标签']
+
+
 def describe_data(data):
     num_of_data = data.shape[0]
     num_of_unhandled_data = data[data['已查'] == ''].shape[0]
@@ -209,11 +201,13 @@ def labelling(data, picked_data, file_path):
 
 if __name__ == "__main__":
     # try:
-    alert_box('欢迎使用本程序', '欢迎')
+    if not app_path:
+        alert_box('欢迎使用本程序！首次使用还未设置app路径，请先设置。', '欢迎')
+        set_app_path()
+        config = reload_config()
+        app_path = reload_config_value('app', 'app_path')
     data, picked_data, file_path = get_data()
     picked_data = describe_data(picked_data)
-    app_path = config.get('app', 'app_path')
-    title_keyword = config.get('app', 'title_keyword')
     window_object = activate_app(app_path, title_keyword)
     activate_window(window_object)
     maximize_window(window_object)
