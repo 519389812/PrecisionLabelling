@@ -4,15 +4,11 @@ import configparser
 from box_body import open_file_box
 
 
-check_airports = {
-    'CAN': True,
-    'URC': False,
-    'PKX': False,
-    'SYX': False,
-    'PVG': False,
-    'HAK': False,
-    'SHA': False
-}
+label_only = False
+
+check_stations = ['CAN', 'URC', 'PKX', 'SYX', 'PVG', 'HAK', 'SHA']
+ics_auth_stations = ['CAN']
+
 
 config_dir = 'config'
 config_file = '%s%sconfig.ini' % (config_dir, os.sep)
