@@ -16,7 +16,7 @@ task_dir = 'task'
 source_dir = 'source'
 
 upgrade_miles = pd.read_excel('%s%supgrade_miles.xlsx' % (source_dir, os.sep))
-upgrade_miles.fillna('', inplace=True)
+upgrade_miles.fillna(0, inplace=True)
 upgrade_miles['city_pair'] = upgrade_miles['departure'] + '-' + upgrade_miles['destination']
 upgrade_miles.set_index(['city_pair'], inplace=True)
 
