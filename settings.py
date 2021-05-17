@@ -1,13 +1,16 @@
 import os
 import pandas as pd
 import configparser
-from box_body import open_file_box
+from box_body import open_file_box, ask_box, yes_no_box
+import re
 
 
-label_only = False
+comment_only = False
 
 check_stations = ['CAN', 'URC', 'PKX', 'SYX', 'PVG', 'HAK', 'SHA']
 ics_auth_stations = ['CAN']
+additional_data_columns = ['标签', '姓名', '查询', '备注']  # 改动需调整源码
+labels = ['LCSCJ', 'LCSCF', 'LCGQ', 'XFSC', 'XFDZ', 'PJBMG']  # 改动需调整filter
 
 
 config_dir = 'config'
@@ -30,6 +33,9 @@ config_init = {
         {'paste_start_location': '4,142'},
         {'paste_end_location_offset': '635,370'}
     ],
+    'user': [
+        {'station': ''}
+    ]
 }
 
 
@@ -70,10 +76,15 @@ def reload_config_value(section, option):
     return config.get(section, option)
 
 
+def reload_config_station():
+    return list(filter(None, config.get('user', 'station').split('/')))
+
+
 check_config_file()
 config = reload_config()
 app_path = reload_config_value('app', 'app_path')
 title_keyword = config.get('app', 'title_keyword')
+stations = reload_config_station()
 
 
 def set_app_path():
@@ -81,3 +92,18 @@ def set_app_path():
     config.set('app', 'app_path', app_path)
     with open(config_file, 'w') as f:
         config.write(f)
+
+
+def set_ics_auth_station():
+    while True:
+        stations = ask_box('请输入您使用的场站（格式为：CAN，输入多个时：CAN/PKX/URC）：', '场站设置').strip('/').upper()
+        pattern = re.compile(r'^([A-Z]{3}/?)+$')
+        if pattern.match(stations):
+            config.set('user', 'station', stations)
+            with open(config_file, 'w') as f:
+                config.write(f)
+                break
+        else:
+            select = yes_no_box('输入格式不正确，是否重新输入？', '格式错误')
+            if select == '否':
+                os._exit(0)
