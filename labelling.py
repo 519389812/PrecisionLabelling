@@ -96,22 +96,22 @@ def reset_columns(data, args):
 def labelling_matched_data(data, target_index):
     target_data = data.loc[target_index, :]
     for city_pair in list(upgrade_miles.index):
-        index_ = target_data[(target_data['OC母舱位'] == 'Y') & (target_data['航段'] == city_pair) & (target_data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_y_to_j'])].index
+        index_ = target_data[((target_data['OC母舱位'] == 'Y') | (target_data['OC母舱位'] == 'W')) & (target_data['航段'] == city_pair) & (target_data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_y_to_j'])].index
         data.loc[index_, 'LCSCJ'] = '是'
         if upgrade_miles.loc[city_pair, 'miles_j_to_f'] != '':
             index_ = target_data[(target_data['OC母舱位'] == 'J') & (target_data['航段'] == city_pair) & (target_data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_j_to_f'])].index
             data.loc[index_, 'LCSCF'] = '是'
-            index_ = target_data[(target_data['OC母舱位'] == 'Y') & (target_data['航段'] == city_pair) & (target_data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_y_to_f'])].index
+            index_ = target_data[((target_data['OC母舱位'] == 'Y') | (target_data['OC母舱位'] == 'W')) & (target_data['航段'] == city_pair) & (target_data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_y_to_f'])].index
             data.loc[index_, 'LCSCF'] = '是'
             index_ = target_data[(target_data['近一年购买升舱次数'] == 'J') & (target_data['航段'] == city_pair)].index
             data.loc[index_, 'XFSC'] = '是'
-    index_ = target_data[(target_data['航段性质'] == '国内') & (target_data['OC母舱位'] == 'Y') & (target_data['OC子舱位'] != 'X') & (target_data['可用里程余额'] >= upgrade_miles.loc['OTHER-OTHER', 'miles_y_to_j'])].index
+    index_ = target_data[(target_data['航段性质'] == '国内') & ((target_data['OC母舱位'] == 'Y') | (target_data['OC母舱位'] == 'W')) & (target_data['OC子舱位'] != 'X') & (target_data['可用里程余额'] >= upgrade_miles.loc['OTHER-OTHER', 'miles_y_to_j'])].index
     data.loc[index_, 'LCSCJ'] = '是'
     index_ = target_data[target_data['近三月到期里程'] >= 6000].index
     data.loc[index_, 'LCGQ'] = '是'
-    index_ = target_data[(target_data['近一年购买升舱次数'] > 0) & (target_data['OC母舱位'] == 'Y') & (target_data['OC子舱位'] != 'X') & (target_data['航段性质'] == '国内')].index
+    index_ = target_data[(target_data['近一年购买升舱次数'] > 0) & ((target_data['OC母舱位'] == 'Y') | (target_data['OC母舱位'] == 'W')) & (target_data['OC子舱位'] != 'X') & (target_data['航段性质'] == '国内')].index
     data.loc[index_, 'XFSC'] = '是'
-    index_ = target_data[(target_data['近一年购买升舱次数'] > 0) & (target_data['OC母舱位'] == 'Y') & (target_data['航段性质'] != '国内')].index
+    index_ = target_data[(target_data['近一年购买升舱次数'] > 0) & ((target_data['OC母舱位'] == 'Y') | (target_data['OC母舱位'] == 'W')) & (target_data['航段性质'] != '国内')].index
     data.loc[index_, 'XFSC'] = '是'
     index_ = target_data[(target_data['近一年购买一人多座次数'] > 0)].index
     data.loc[index_, 'XFDZ'] = '是'
