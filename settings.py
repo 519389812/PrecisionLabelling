@@ -8,7 +8,6 @@ import re
 comment_only = True
 
 check_stations = ['CAN', 'URC', 'PKX', 'SYX', 'PVG', 'HAK', 'SHA']
-ics_auth_stations = ['CAN']
 additional_data_columns = ['标签', '姓名', '查询', '备注']  # 改动需调整源码
 labels = ['LCSCJ', 'LCSCF', 'LCGQ', 'XFSC', 'XFDZ', 'PJBMG']  # 改动需调整filter
 
@@ -93,7 +92,7 @@ check_config_file()
 config = reload_config()
 app_path = reload_config_value('app', 'app_path')
 title_keyword = config.get('app', 'title_keyword')
-stations = reload_config_station()
+ics_auth_stations = reload_config_station()
 
 
 def set_app_path():

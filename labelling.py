@@ -78,7 +78,7 @@ def describe_data(picked_data, comment_only):
     if not comment_only:
         unhandled_data = picked_data[picked_data['查询'] == '']
     else:
-        unhandled_data = picked_data[(picked_data['备注'] == '') & (picked_data['姓名'] != '')]
+        unhandled_data = picked_data[(picked_data['备注'] == '') & (picked_data['姓名'] != '') & (picked_data['OD始发机场'].isin(ics_auth_stations) == True)]
     if unhandled_data.shape[0] == 0:
         alert_box('筛选出符合条件的数据 %d 条，所有数据已经处理完毕，程序退出' % num_of_data, '完毕')
         os._exit(0)
@@ -214,13 +214,13 @@ def check_or_comment(data, picked_data, file_path, comment_only):
 
 if __name__ == "__main__":
     # try:
-    if not app_path or not stations:
+    if not app_path or not ics_auth_stations:
         alert_box('欢迎使用本程序！首次使用请根据提示进行初始化设置。', '欢迎')
         set_app_path()
         set_ics_auth_station()
         config = reload_config()
         app_path = reload_config_value('app', 'app_path')
-        stations = reload_config_station()
+        ics_auth_stations = reload_config_station()
     data, date, file_path = get_data()
     target_index = get_target_index(data, date)
     data = labelling_matched_data(data, target_index)
