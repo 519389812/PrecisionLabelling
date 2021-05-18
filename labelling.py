@@ -14,6 +14,14 @@ def create_new_columns(data, args):
     return data
 
 
+def combine_columns(data):
+    if '近一年购买升舱次数' not in data.columns:
+        data['近一年购买升舱次数'] = data['近一年购买登机口升舱次数'] + data['近一年购买候补升舱次数'] + data['近一年购买休息室升舱次数']
+    if '近三月到期里程' not in data.columns:
+        data['近三月到期里程'] = data['本月到期里程'] + data['下月到期里程'] + data['下下月到期里程']
+    return data
+
+
 def get_data():
     while True:
         date = get_date()
@@ -40,6 +48,7 @@ def get_data():
         data.fillna('', inplace=True)
         data = combine_columns(data)
         data = create_new_columns(data, additional_data_columns + labels)
+        data = reset_columns(data, labels)
         return data, date, file_path
 
 
@@ -50,30 +59,32 @@ def save_data(data, file_path):
     data.to_csv(file_path, index=False)
 
 
-def describe_data(picked_data, column):
+def get_target_index(data, date):
+    target_index = data[(data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & data['OD始发机场'].isin(check_stations) == True].index
+    if len(target_index) == 0:
+        alert_box('无符合条件数据，程序退出。', '无数据')
+        os._exit(0)
+    return target_index
+
+
+def pick_data(data, target_index):
+    target_data = data.loc[target_index, :]
+    picked_data = target_data[(target_data['LCSCJ'] == '是') | (target_data['LCSCF'] == '是') | (target_data['LCGQ'] == '是') | (target_data['XFSC'] == '是') | (target_data['XFDZ'] == '是') | (target_data['PJBMG'] == '是')]
+    return picked_data
+
+
+def describe_data(picked_data, comment_only):
     num_of_data = picked_data.shape[0]
-    num_of_unhandled_data = picked_data[picked_data[column] == ''].shape[0]
-    if num_of_unhandled_data == 0:
+    if not comment_only:
+        unhandled_data = picked_data[picked_data['查询'] == '']
+    else:
+        unhandled_data = picked_data[(picked_data['备注'] == '') & (picked_data['姓名'] != '')]
+    if unhandled_data.shape[0] == 0:
         alert_box('筛选出符合条件的数据 %d 条，所有数据已经处理完毕，程序退出' % num_of_data, '完毕')
         os._exit(0)
     else:
-        alert_box('筛选出符合条件的数据 %d 条，其中已处理的数据有 %d 条，未处理的数据有 %d 条。' % (num_of_data, num_of_data - num_of_unhandled_data, num_of_unhandled_data), '概况')
-        picked_data = picked_data[picked_data[column] == '']
-        return picked_data
-
-
-def common_filter(data, date):
-    data.replace('\t', '', regex=True, inplace=True)
-    data = data[(data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & data['OD始发机场'].isin(check_stations) == True]
-    return data
-
-
-def combine_columns(data):
-    if '近一年购买升舱次数' not in data.columns:
-        data['近一年购买升舱次数'] = data['近一年购买登机口升舱次数'] + data['近一年购买候补升舱次数'] + data['近一年购买休息室升舱次数']
-    if '近三月到期里程' not in data.columns:
-        data['近三月到期里程'] = data['本月到期里程'] + data['下月到期里程'] + data['下下月到期里程']
-    return data
+        alert_box('筛选出符合条件的数据 %d 条，其中已处理的数据有 %d 条，未处理的数据有 %d 条。' % (num_of_data, num_of_data - unhandled_data.shape[0], unhandled_data.shape[0]), '概况')
+        return unhandled_data
 
 
 def reset_columns(data, args):
@@ -82,41 +93,40 @@ def reset_columns(data, args):
     return data
 
 
-def labelling_matched_data(data):
+def labelling_matched_data(data, target_index):
+    target_data = data.loc[target_index, :]
     for city_pair in list(upgrade_miles.index):
-        index_ = data[(data['OC母舱位'] == 'Y') & (data['航段'] == city_pair) & (data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_y_to_j'])].index
+        index_ = target_data[(target_data['OC母舱位'] == 'Y') & (target_data['航段'] == city_pair) & (target_data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_y_to_j'])].index
         data.loc[index_, 'LCSCJ'] = '是'
         if upgrade_miles.loc[city_pair, 'miles_j_to_f'] != '':
-            index_ = data[(data['OC母舱位'] == 'J') & (data['航段'] == city_pair) & (data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_j_to_f'])].index
+            index_ = target_data[(target_data['OC母舱位'] == 'J') & (target_data['航段'] == city_pair) & (target_data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_j_to_f'])].index
             data.loc[index_, 'LCSCF'] = '是'
-            index_ = data[(data['OC母舱位'] == 'Y') & (data['航段'] == city_pair) & (data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_y_to_f'])].index
+            index_ = target_data[(target_data['OC母舱位'] == 'Y') & (target_data['航段'] == city_pair) & (target_data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_y_to_f'])].index
             data.loc[index_, 'LCSCF'] = '是'
-            index_ = data[(data['近一年购买升舱次数'] == 'J') & (data['航段'] == city_pair)].index
+            index_ = target_data[(target_data['近一年购买升舱次数'] == 'J') & (target_data['航段'] == city_pair)].index
             data.loc[index_, 'XFSC'] = '是'
-    index_ = data[(data['航段性质'] == '国内') & (data['OC母舱位'] == 'Y') & (data['OC子舱位'] != 'X') & (data['可用里程余额'] >= 20000)].index
+    index_ = target_data[(target_data['航段性质'] == '国内') & (target_data['OC母舱位'] == 'Y') & (target_data['OC子舱位'] != 'X') & (target_data['可用里程余额'] >= upgrade_miles.loc['OTHER-OTHER', 'miles_y_to_j'])].index
     data.loc[index_, 'LCSCJ'] = '是'
-    index_ = data[data['近三月到期里程'] >= 6000].index
+    index_ = target_data[target_data['近三月到期里程'] >= 6000].index
     data.loc[index_, 'LCGQ'] = '是'
-    index_ = data[(data['近一年购买升舱次数'] > 0) & (data['OC母舱位'] == 'Y') & (data['OC子舱位'] != 'X') & (data['航段性质'] == '国内')].index
+    index_ = target_data[(target_data['近一年购买升舱次数'] > 0) & (target_data['OC母舱位'] == 'Y') & (target_data['OC子舱位'] != 'X') & (target_data['航段性质'] == '国内')].index
     data.loc[index_, 'XFSC'] = '是'
-    index_ = data[(data['近一年购买升舱次数'] > 0) & (data['OC母舱位'] == 'Y') & (data['航段性质'] != '国内')].index
+    index_ = target_data[(target_data['近一年购买升舱次数'] > 0) & (target_data['OC母舱位'] == 'Y') & (target_data['航段性质'] != '国内')].index
     data.loc[index_, 'XFSC'] = '是'
-    index_ = data[(data['近一年购买一人多座次数'] > 0)].index
+    index_ = target_data[(target_data['近一年购买一人多座次数'] > 0)].index
     data.loc[index_, 'XFDZ'] = '是'
-    index_ = data[data['差旅类票价不敏感旅客'] == '是'].index
+    index_ = target_data[target_data['差旅类票价不敏感旅客'] == '是'].index
     data.loc[index_, 'PJBMG'] = '是'
     return data
 
 
-def pick_data(data):
-    picked_data = data[(data['LCSCJ'] == '是') | (data['LCSCF'] == '是') | (data['LCGQ'] == '是') | (data['XFSC'] == '是') | (data['XFDZ'] == '是') | (data['PJBMG'] == '是')]
-    return picked_data
-
-
-def save_data_init_status(data, picked_data):
-    data.loc[data[(data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & data['OD始发机场'].isin(check_stations)].index.difference(picked_data.index), '查询'] = '非标签旅客'
+def reset_init_status(data, picked_data, target_index, file_path):
+    data.loc[target_index.difference(picked_data.index), '查询'] = '非标签旅客'
+    data.loc[target_index.difference(picked_data.index), '备注'] = '非标签旅客'
     data.loc[picked_data[picked_data['查询'] == '非标签旅客'].index, '查询'] = ''
-    data.loc[picked_data[picked_data['查询'] == '非标签旅客'].index, '备注'] = ''
+    data.loc[picked_data[picked_data['备注'] == '非标签旅客'].index, '备注'] = ''
+    save_data(data, file_path)
+    return data
 
 
 def create_label(row):
@@ -133,30 +143,30 @@ def check_or_comment(data, picked_data, file_path, comment_only):
             label = create_label(row)
             data.loc[index_, '标签'] = label
             station = row['OD始发机场']
-            if station in ics_auth_stations:
-                flt_num = row['OC承运人'] + row['OC航班号']
-                flt_date = row['飞行日期']
-                flt_date = change_ics_date_format(flt_date)
-                ticket = row['电子客票号']
-                if not comment_only:
-                    keyboard_write_etkd(ticket)
-                    text = copy_text(x_start, y_start, x_end, y_end)
-                    if not text_has_ticket(text):
-                        data.loc[index_, '查询'] = '未能提取客票'
-                        continue
-                    ticket_data = ticket_data_collector.details_extract(text)
-                    if ticket_data:
-                        if ticket_data['first_name'] != '':
-                            pax_name = ticket_data['last_name'] + '/' + ticket_data['first_name']
-                        else:
-                            pax_name = ticket_data['last_name']
+            flt_num = row['OC承运人'] + row['OC航班号']
+            flt_date = row['飞行日期']
+            flt_date = change_ics_date_format(flt_date)
+            ticket = row['电子客票号']
+            if not comment_only:
+                keyboard_write_etkd(ticket)
+                text = copy_text(x_start, y_start, x_end, y_end)
+                if not text_has_ticket(text):
+                    data.loc[index_, '查询'] = '未能提取客票'
+                    continue
+                ticket_data = ticket_data_collector.details_extract(text)
+                if ticket_data:
+                    if ticket_data['first_name'] != '':
+                        pax_name = ticket_data['last_name'] + '/' + ticket_data['first_name']
                     else:
-                        data.loc[index_, '查询'] = '客票信息提取异常'
-                        continue
-                    data.loc[index_, '姓名'] = pax_name
-                    data.loc[index_, '查询'] = '是'
+                        pax_name = ticket_data['last_name']
                 else:
-                    pax_name = row['姓名']
+                    data.loc[index_, '查询'] = '客票信息提取异常'
+                    continue
+                data.loc[index_, '姓名'] = pax_name
+                data.loc[index_, '查询'] = '是'
+            else:
+                pax_name = row['姓名']
+            if station in ics_auth_stations:
                 name_list = [''.join(name) for name in product(*pypinyin.pinyin(pax_name, style=pypinyin.NORMAL, heteronym=True))]
                 found = False
                 for name in name_list:
@@ -205,19 +215,25 @@ def check_or_comment(data, picked_data, file_path, comment_only):
 if __name__ == "__main__":
     # try:
     if not app_path or not stations:
-        alert_box('欢迎使用本程序！首次使用还未设置app路径，请先设置。', '欢迎')
+        alert_box('欢迎使用本程序！首次使用请根据提示进行初始化设置。', '欢迎')
         set_app_path()
+        set_ics_auth_station()
         config = reload_config()
         app_path = reload_config_value('app', 'app_path')
         stations = reload_config_station()
     data, date, file_path = get_data()
+    target_index = get_target_index(data, date)
+    data = labelling_matched_data(data, target_index)
+    picked_data = pick_data(data, target_index)
+    data = reset_init_status(data, picked_data, target_index, file_path)
+    picked_data = describe_data(picked_data, comment_only)
     window_object = activate_app(app_path, title_keyword)
     activate_window(window_object)
     maximize_window(window_object)
     x_start, y_start, x_end, y_end = adjust_location()
     switch_input_language()
     login_ics(x_start, y_start, x_end, y_end)
-
+    check_or_comment(data, picked_data, file_path, comment_only)
     alert_box('备注完毕，结果请查看%s文件，感谢使用！' % file_path, '退出程序')
     # except:
     #     alert_box('程序出现问题，正在退出程序，感谢使用！', '退出程序')

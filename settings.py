@@ -1,11 +1,11 @@
 import os
 import pandas as pd
 import configparser
-from box_body import open_file_box, ask_box, yes_no_box
+from box_body import open_file_box, ask_box, yes_no_box, alert_box
 import re
 
 
-comment_only = False
+comment_only = True
 
 check_stations = ['CAN', 'URC', 'PKX', 'SYX', 'PVG', 'HAK', 'SHA']
 ics_auth_stations = ['CAN']
@@ -17,24 +17,33 @@ config_dir = 'config'
 config_file = '%s%sconfig.ini' % (config_dir, os.sep)
 task_dir = 'task'
 source_dir = 'source'
+source_file = '%s%supgrade_miles.xlsx' % (source_dir, os.sep)
 
-upgrade_miles = pd.read_excel('%s%supgrade_miles.xlsx' % (source_dir, os.sep))
+
+def check_source_file():
+    if not os.path.exists(source_file):
+        alert_box('缺少 %s 文件' % source_file, '错误')
+        os._exit(0)
+
+
+check_source_file()
+upgrade_miles = pd.read_excel(source_file)
 upgrade_miles.fillna(0, inplace=True)
 upgrade_miles['city_pair'] = upgrade_miles['departure'] + '-' + upgrade_miles['destination']
 upgrade_miles.set_index(['city_pair'], inplace=True)
 
 config_init = {
     'app': [
-        {'app_path': ''},
-        {'title_keyword': 'eTerm'}
+        ['app_path', ''],
+        ['title_keyword', 'eTerm'],
     ],
     'location': [
-        {'paste_start_location_image_path': 'config\paste_start_location_image.png'},
-        {'paste_start_location': '4,142'},
-        {'paste_end_location_offset': '635,370'}
+        ['paste_start_location_image_path', 'config\paste_start_location_image.png'],
+        ['paste_start_location', '4,142'],
+        ['paste_end_location_offset', '635,370'],
     ],
     'user': [
-        {'station': ''}
+        ['station', ''],
     ]
 }
 
