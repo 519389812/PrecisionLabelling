@@ -68,6 +68,7 @@ def get_target_index(data, date):
 
 
 def pick_data(data, target_index):
+    data.replace('\t', '', regex=True, inplace=True)
     target_data = data.loc[target_index, :]
     picked_data = target_data[(target_data['LCSCJ'] == '是') | (target_data['LCSCF'] == '是') | (target_data['LCGQ'] == '是') | (target_data['XFSC'] == '是') | (target_data['XFDZ'] == '是') | (target_data['PJBMG'] == '是')]
     return picked_data
