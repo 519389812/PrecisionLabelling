@@ -22,12 +22,6 @@ def check_source_file():
         os._exit(0)
 
 
-check_source_file()
-upgrade_miles = pd.read_excel(source_file)
-upgrade_miles.fillna(0, inplace=True)
-upgrade_miles['city_pair'] = upgrade_miles['departure'] + '-' + upgrade_miles['destination']
-upgrade_miles.set_index(['city_pair'], inplace=True)
-
 config_init = {
     'app': [
         ['app_path', ''],
@@ -40,7 +34,7 @@ config_init = {
     ],
     'client': [
         ['auth', ''],
-        ['stations', ''],
+        ['stations', 'CAN/URC/PKX/SYX/PVG/HAK/SHA/KWE/SWA'],
         ['comment', '1'],
     ],
 }
@@ -94,6 +88,13 @@ title_keyword = config.get('app', 'title_keyword')
 client_auth_stations = reload_config_client_station('client', 'auth')
 client_stations = reload_config_client_station('client', 'stations')
 comment_only = bool(int(reload_config_value('client', 'comment')))
+
+
+check_source_file()
+upgrade_miles = pd.read_excel(source_file)
+upgrade_miles.fillna(0, inplace=True)
+upgrade_miles['city_pair'] = upgrade_miles['departure'] + '-' + upgrade_miles['destination']
+upgrade_miles.set_index(['city_pair'], inplace=True)
 
 
 def set_app_path():

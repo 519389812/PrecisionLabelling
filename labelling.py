@@ -60,7 +60,7 @@ def save_data(data, file_path):
 
 
 def get_target_index(data, date):
-    target_index = data[(data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & data['OD始发机场'].isin(client_stations) == True].index
+    target_index = data[(data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & data['航段始发机场'].isin(client_stations) == True].index
     if len(target_index) == 0:
         alert_box('无符合条件数据，程序退出。', '无数据')
         os._exit(0)
@@ -88,7 +88,7 @@ def describe_data(picked_data, comment_only):
     if not comment_only:
         unhandled_data = picked_data[picked_data['查询'] == '']
     else:
-        unhandled_data = picked_data[(picked_data['备注'] == '') & (picked_data['姓名'] != '') & (picked_data['OD始发机场'].isin(client_auth_stations) == True)]
+        unhandled_data = picked_data[(picked_data['备注'] == '') & (picked_data['姓名'] != '') & (picked_data['航段始发机场'].isin(client_auth_stations) == True)]
     if unhandled_data.shape[0] == 0:
         alert_box('筛选出符合条件的数据 %d 条，所有数据已经处理完毕，程序退出' % num_of_data, '完毕')
         os._exit(0)
@@ -142,7 +142,7 @@ def check_or_comment(data, picked_data, file_path, comment_only):
     try:
         for index_, row in picked_data.iterrows():
             label = create_label(row)
-            station = row['OD始发机场']
+            station = row['航段始发机场']
             flt_num = row['OC承运人'] + row['OC航班号']
             flt_date = row['飞行日期']
             flt_date = change_ics_date_format(flt_date)
