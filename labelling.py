@@ -152,6 +152,7 @@ def check_or_comment(data, picked_data, file_path, comment_only):
                 text = copy_text(x_start, y_start, x_end, y_end)
                 if not text_has_ticket(text):
                     data.loc[index_, '查询'] = '未能提取客票'
+                    data.loc[index_, '备注'] = '未能提取旅客'
                     continue
                 ticket_data = ticket_data_collector.details_extract(text)
                 if ticket_data:
@@ -161,6 +162,7 @@ def check_or_comment(data, picked_data, file_path, comment_only):
                         pax_name = ticket_data['last_name']
                 else:
                     data.loc[index_, '查询'] = '客票信息提取异常'
+                    data.loc[index_, '备注'] = '未能提取旅客'
                     continue
                 data.loc[index_, '姓名'] = pax_name
                 data.loc[index_, '查询'] = '是'
