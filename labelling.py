@@ -60,7 +60,7 @@ def save_data(data, file_path):
 
 
 def get_target_index(data, date):
-    target_index = data[(data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & data['OD始发机场'].isin(check_stations) == True].index
+    target_index = data[(data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & data['OD始发机场'].isin(client_stations) == True].index
     if len(target_index) == 0:
         alert_box('无符合条件数据，程序退出。', '无数据')
         os._exit(0)
@@ -73,12 +73,21 @@ def pick_data(data, target_index):
     return picked_data
 
 
+def reset_init_status(data, picked_data, target_index, file_path):
+    data.loc[target_index.difference(picked_data.index), '查询'] = '非标签旅客'
+    data.loc[target_index.difference(picked_data.index), '备注'] = '非标签旅客'
+    data.loc[picked_data[picked_data['查询'] == '非标签旅客'].index, '查询'] = ''
+    data.loc[picked_data[picked_data['备注'] == '非标签旅客'].index, '备注'] = ''
+    save_data(data, file_path)
+    return data
+
+
 def describe_data(picked_data, comment_only):
     num_of_data = picked_data.shape[0]
     if not comment_only:
         unhandled_data = picked_data[picked_data['查询'] == '']
     else:
-        unhandled_data = picked_data[(picked_data['备注'] == '') & (picked_data['姓名'] != '') & (picked_data['OD始发机场'].isin(ics_auth_stations) == True)]
+        unhandled_data = picked_data[(picked_data['备注'] == '') & (picked_data['姓名'] != '') & (picked_data['OD始发机场'].isin(client_auth_stations) == True)]
     if unhandled_data.shape[0] == 0:
         alert_box('筛选出符合条件的数据 %d 条，所有数据已经处理完毕，程序退出' % num_of_data, '完毕')
         os._exit(0)
@@ -120,15 +129,6 @@ def labelling_matched_data(data, target_index):
     return data
 
 
-def reset_init_status(data, picked_data, target_index, file_path):
-    data.loc[target_index.difference(picked_data.index), '查询'] = '非标签旅客'
-    data.loc[target_index.difference(picked_data.index), '备注'] = '非标签旅客'
-    data.loc[picked_data[picked_data['查询'] == '非标签旅客'].index, '查询'] = ''
-    data.loc[picked_data[picked_data['备注'] == '非标签旅客'].index, '备注'] = ''
-    save_data(data, file_path)
-    return data
-
-
 def create_label(row):
     label = 'CKIN '
     for l in labels:
@@ -141,7 +141,6 @@ def check_or_comment(data, picked_data, file_path, comment_only):
     try:
         for index_, row in picked_data.iterrows():
             label = create_label(row)
-            data.loc[index_, '标签'] = label
             station = row['OD始发机场']
             flt_num = row['OC承运人'] + row['OC航班号']
             flt_date = row['飞行日期']
@@ -166,7 +165,7 @@ def check_or_comment(data, picked_data, file_path, comment_only):
                 data.loc[index_, '查询'] = '是'
             else:
                 pax_name = row['姓名']
-            if station in ics_auth_stations:
+            if station in client_auth_stations:
                 name_list = [''.join(name) for name in product(*pypinyin.pinyin(pax_name, style=pypinyin.NORMAL, heteronym=True))]
                 found = False
                 for name in name_list:
@@ -214,18 +213,19 @@ def check_or_comment(data, picked_data, file_path, comment_only):
 
 if __name__ == "__main__":
     # try:
-    if not app_path or not ics_auth_stations:
+    if not app_path or not client_auth_stations:
         alert_box('欢迎使用本程序！首次使用请根据提示进行初始化设置。', '欢迎')
         set_app_path()
         set_ics_auth_station()
         config = reload_config()
         app_path = reload_config_value('app', 'app_path')
-        ics_auth_stations = reload_config_station()
+        client_auth_stations = reload_config_client_station('client', 'auth')
     data, date, file_path = get_data()
     target_index = get_target_index(data, date)
     data = labelling_matched_data(data, target_index)
     picked_data = pick_data(data, target_index)
     data = reset_init_status(data, picked_data, target_index, file_path)
+    picked_data = pick_data(data, target_index)
     picked_data = describe_data(picked_data, comment_only)
     window_object = activate_app(app_path, title_keyword)
     activate_window(window_object)

@@ -5,10 +5,7 @@ from box_body import open_file_box, ask_box, yes_no_box, alert_box
 import re
 
 
-comment_only = True
-
-check_stations = ['CAN', 'URC', 'PKX', 'SYX', 'PVG', 'HAK', 'SHA']
-additional_data_columns = ['标签', '姓名', '查询', '备注']  # 改动需调整源码
+additional_data_columns = ['姓名', '查询', '备注']  # 改动需调整源码
 labels = ['LCSCJ', 'LCSCF', 'LCGQ', 'XFSC', 'XFDZ', 'PJBMG']  # 改动需调整filter
 
 
@@ -41,9 +38,11 @@ config_init = {
         ['paste_start_location', '4,142'],
         ['paste_end_location_offset', '635,370'],
     ],
-    'user': [
-        ['station', ''],
-    ]
+    'client': [
+        ['auth', ''],
+        ['stations', ''],
+        ['comment', '1'],
+    ],
 }
 
 
@@ -84,19 +83,21 @@ def reload_config_value(section, option):
     return config.get(section, option)
 
 
-def reload_config_station():
-    return list(filter(None, config.get('user', 'station').split('/')))
+def reload_config_client_station(section, option):
+    return list(filter(None, config.get(section, option).split('/')))
 
 
 check_config_file()
 config = reload_config()
 app_path = reload_config_value('app', 'app_path')
 title_keyword = config.get('app', 'title_keyword')
-ics_auth_stations = reload_config_station()
+client_auth_stations = reload_config_client_station('client', 'auth')
+client_stations = reload_config_client_station('client', 'stations')
+comment_only = bool(int(reload_config_value('client', 'comment')))
 
 
 def set_app_path():
-    app_path = open_file_box(filetypes=[('.', '*.*')])
+    app_path = open_file_box('请选择ICS路径', filetypes=[('.', '*.*')])
     config.set('app', 'app_path', app_path)
     with open(config_file, 'w') as f:
         config.write(f)
@@ -107,7 +108,7 @@ def set_ics_auth_station():
         stations = ask_box('请输入您使用的场站（格式为：CAN，输入多个时：CAN/PKX/URC）：', '场站设置').strip('/').upper()
         pattern = re.compile(r'^([A-Z]{3}/?)+$')
         if pattern.match(stations):
-            config.set('user', 'station', stations)
+            config.set('client', 'auth', stations)
             with open(config_file, 'w') as f:
                 config.write(f)
                 break
