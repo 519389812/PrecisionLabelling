@@ -108,7 +108,7 @@ def labelling_matched_data(data, target_index):
     for city_pair in list(upgrade_miles.index):
         index_ = target_data[((target_data['OC母舱位'] == 'Y') | (target_data['OC母舱位'] == 'W')) & (target_data['航段'] == city_pair) & (target_data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_y_to_j'])].index
         data.loc[index_, 'LCSCJ'] = '是'
-        if upgrade_miles.loc[city_pair, 'miles_j_to_f'] != '':
+        if upgrade_miles.loc[city_pair, 'miles_j_to_f'] != 0:
             index_ = target_data[(target_data['OC母舱位'] == 'J') & (target_data['航段'] == city_pair) & (target_data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_j_to_f'])].index
             data.loc[index_, 'LCSCF'] = '是'
             index_ = target_data[((target_data['OC母舱位'] == 'Y') | (target_data['OC母舱位'] == 'W')) & (target_data['航段'] == city_pair) & (target_data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_y_to_f'])].index

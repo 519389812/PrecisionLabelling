@@ -34,7 +34,7 @@ config_init = {
     ],
     'client': [
         ['auth', ''],
-        ['stations', 'CAN/URC/PKX/SYX/PVG/HAK/SHA/KWE/SWA'],
+        ['stations', 'CAN/URC/PKX/SYX/PVG/HAK/SHA/KWE/SWA/CSX'],
         ['comment', '1'],
     ],
 }
@@ -95,6 +95,7 @@ upgrade_miles = pd.read_excel(source_file)
 upgrade_miles.fillna(0, inplace=True)
 upgrade_miles['city_pair'] = upgrade_miles['departure'] + '-' + upgrade_miles['destination']
 upgrade_miles.set_index(['city_pair'], inplace=True)
+# upgrade_miles['miles_y_to_j'] = upgrade_miles['miles_y_to_j'].astype('float64')
 
 
 def set_app_path():
