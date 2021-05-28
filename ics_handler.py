@@ -226,7 +226,7 @@ def text_has_ticket(text):
 
 
 def text_has_number(text):
-    if 'ENTRY NBR' in text:
-        return False
-    else:
+    if 'PR: ' in text:
         return True
+    else:
+        return False
