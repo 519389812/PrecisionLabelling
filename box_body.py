@@ -63,4 +63,4 @@ def open_file_box(title='选择文件', initialdir='.', filetypes=None):
 
 
 if __name__ == '__main__':
-    pass
+    open_file_box()
