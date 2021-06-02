@@ -13,6 +13,7 @@ config_dir = 'config'
 config_file = '%s%sconfig.ini' % (config_dir, os.sep)
 task_dir = 'task'
 source_dir = 'source'
+sales_dir = 'sales'
 source_file = '%s%supgrade_miles.xlsx' % (source_dir, os.sep)
 
 
