@@ -14,6 +14,8 @@ config_file = '%s%sconfig.ini' % (config_dir, os.sep)
 task_dir = 'task'
 source_dir = 'source'
 sales_dir = 'sales'
+driver_dir = 'driver'
+chrome_driver = '%s%s%s%schromedriver.exe' % (driver_dir, os.sep, '74', os.sep)
 source_file = '%s%supgrade_miles.xlsx' % (source_dir, os.sep)
 
 

@@ -32,7 +32,7 @@ def get_st_data(date_list, start_date, end_date):
                     st_data_temp.replace('\t', '', regex=True, inplace=True)
                     st_data_temp['飞行日期'] = pd.to_datetime(st_data_temp['飞行日期']).dt.strftime('%Y-%m-%d')
                     st_data_temp.fillna('', inplace=True)
-                    st_data_temp = st_data_temp[st_data_temp['航段始发机场'] == 'CAN']
+                    st_data_temp = st_data_temp[st_data_temp['航段始发机场'] == 'URC']
                     st_data = pd.concat([st_data, st_data_temp], ignore_index=True, join='outer')
                 else:
                     continue
@@ -40,7 +40,7 @@ def get_st_data(date_list, start_date, end_date):
         alert_box('未提取到st数据', '错误')
         os._exit(0)
     st_data.fillna('', inplace=True)
-    st_data = st_data[['UID', '航段', '飞行日期', '电子客票号', '已查', '备注']]
+    st_data = st_data[['UID', '航段', '飞行日期', '电子客票号', '查询', '备注']]
     st_data.to_csv('%s%s%s_%s_st_total.csv' % (task_dir, os.sep, start_date, end_date))
     return st_data
 
@@ -60,7 +60,7 @@ def get_sales_data(start_date, end_date):
                 alert_box('未提取到销售数据', '错误')
                 os._exit(0)
             sales_data_temp.drop(sales_data_temp.head(2).index, inplace=True)
-            sales_data_temp = sales_data_temp[(sales_data_temp['起飞机场'] == 'CAN') & (sales_data_temp['销售单位'] == 'SMARTSERVICE系统') & (sales_data_temp['下单渠道'] == 'SS') & (sales_data_temp['EMD类型'].isin(['柜台升舱', '一人多座', '休息室升舱', '机场柜台升舱']) == True)]
+            sales_data_temp = sales_data_temp[(sales_data_temp['起飞机场'] == 'URC') & (sales_data_temp['销售单位'] == 'SMARTSERVICE系统') & (sales_data_temp['下单渠道'] == 'SS') & (sales_data_temp['EMD类型'].isin(['柜台升舱', '一人多座', '休息室升舱', '机场柜台升舱']) == True)]
             sales_data = pd.concat([sales_data, sales_data_temp], ignore_index=True, join='outer')
     if sales_data.shape[0] == 0:
         alert_box('未提取到st数据', '错误')
@@ -79,24 +79,24 @@ def compare_data(st_data, sales_data):
 
 
 def describe_data(data):
-    marked_international_count = data[((data['已查'] == '是') | (data['备注'] == '是')) & (data['航段'].isin(international) == True)].shape[0]
-    marked_international_successful_count = data[((data['已查'] == '是') | (data['备注'] == '是')) & (data['航段'].isin(international) == True) & (data['关联票号'] != '')].shape[0]
-    marked_international_successful_rate = marked_international_successful_count / marked_international_count
+    # marked_international_count = data[((data['查询'] == '是') | (data['备注'] == '是')) & (data['航段'].isin(international) == True)].shape[0]
+    # marked_international_successful_count = data[((data['查询'] == '是') | (data['备注'] == '是')) & (data['航段'].isin(international) == True) & (data['关联票号'] != '')].shape[0]
+    # marked_international_successful_rate = marked_international_successful_count / marked_international_count
+    #
+    # total_international_count = data[data['航段'].isin(international) == True].shape[0]
+    # total_international_successful_count = data[(data['航段'].isin(international) == True) & (data['关联票号'] != '')].shape[0]
+    # total_international_successful_rate = total_international_successful_count / total_international_count
+    #
+    # marked_domestic_count = data[((data['查询'] == '是') | (data['备注'] == '是')) & (data['航段'].isin(international) == False)].shape[0]
+    # marked_domestic_successful_count = data[((data['查询'] == '是') | (data['备注'] == '是')) & (data['航段'].isin(international) == False) & (data['关联票号'] != '')].shape[0]
+    # marked_domestic_successful_rate = marked_domestic_successful_count / marked_domestic_count
+    #
+    # total_domestic_count = data[data['航段'].isin(international) == False].shape[0]
+    # total_domestic_successful_count = data[(data['航段'].isin(international) == False) & (data['关联票号'] != '')].shape[0]
+    # total_domestic_successful_rate = total_domestic_successful_count / total_domestic_count
 
-    total_international_count = data[data['航段'].isin(international) == True].shape[0]
-    total_international_successful_count = data[(data['航段'].isin(international) == True) & (data['关联票号'] != '')].shape[0]
-    total_international_successful_rate = total_international_successful_count / total_international_count
-
-    marked_domestic_count = data[((data['已查'] == '是') | (data['备注'] == '是')) & (data['航段'].isin(international) == False)].shape[0]
-    marked_domestic_successful_count = data[((data['已查'] == '是') | (data['备注'] == '是')) & (data['航段'].isin(international) == False) & (data['关联票号'] != '')].shape[0]
-    marked_domestic_successful_rate = marked_domestic_successful_count / marked_domestic_count
-
-    total_domestic_count = data[data['航段'].isin(international) == False].shape[0]
-    total_domestic_successful_count = data[(data['航段'].isin(international) == False) & (data['关联票号'] != '')].shape[0]
-    total_domestic_successful_rate = total_domestic_successful_count / total_domestic_count
-
-    data_count = data[(data['已查'] == '是') | (data['备注'] == '是')].shape[0]
-    data_successful_count = data[((data['已查'] == '是') | (data['备注'] == '是')) & (data['关联票号'] != '')].shape[0]
+    data_count = data[(data['查询'] == '非用户所在场站') | (data['备注'] == '是')].shape[0]
+    data_successful_count = data[((data['查询'] == '非用户所在场站') | (data['备注'] == '是')) & (data['关联票号'] != '')].shape[0]
     data_success_rate = data_successful_count / data_count
 
     total_count = data[data['UID'] != ''].shape[0]
@@ -104,19 +104,19 @@ def describe_data(data):
     total_success_rate = total_success_count / total_count
     with open('result.txt', 'w') as f:
         f.write(
-            '国际备注旅客总数：%d\n国际备注旅客销售成功数：%d\n国际备注旅客销售成功率：%.5f\n\n'
-            '国际旅客总数：%d\n国际旅客销售成功数：%d\n国际旅客销售成功率：%.5f\n\n\n\n'
-            
-            '国内备注旅客总数：%d\n国内备注旅客销售成功数：%d\n国内备注旅客销售成功率：%.5f\n\n'
-            '国内旅客总数：%d\n国内旅客销售成功数：%d\n国内旅客销售成功率：%.5f\n\n\n\n'
+            # '国际备注旅客总数：%d\n国际备注旅客销售成功数：%d\n国际备注旅客销售成功率：%.5f\n\n'
+            # '国际旅客总数：%d\n国际旅客销售成功数：%d\n国际旅客销售成功率：%.5f\n\n\n\n'
+            #
+            # '国内备注旅客总数：%d\n国内备注旅客销售成功数：%d\n国内备注旅客销售成功率：%.5f\n\n'
+            # '国内旅客总数：%d\n国内旅客销售成功数：%d\n国内旅客销售成功率：%.5f\n\n\n\n'
             
             '备注旅客总数：%d\n备注旅客销售成功数：%d\n备注旅客销售成功率：%.5f\n\n'
             '提取旅客总数：%d\n提取旅客销售数：%d\n提取旅客销售率：%.5f\n\n\n\n'
             % (
-                marked_international_count, marked_international_successful_count, marked_international_successful_rate,
-                total_international_count, total_international_successful_count, total_international_successful_rate,
-                marked_domestic_count, marked_domestic_successful_count, marked_domestic_successful_rate,
-                total_domestic_count, total_domestic_successful_count, total_domestic_successful_rate,
+                # marked_international_count, marked_international_successful_count, marked_international_successful_rate,
+                # total_international_count, total_international_successful_count, total_international_successful_rate,
+                # marked_domestic_count, marked_domestic_successful_count, marked_domestic_successful_rate,
+                # total_domestic_count, total_domestic_successful_count, total_domestic_successful_rate,
                 data_count, data_successful_count, data_success_rate,
                 total_count, total_success_count, total_success_rate,
             ))
@@ -124,7 +124,7 @@ def describe_data(data):
 
 def main():
     start_date = date_box('请输入开始日期', '开始日期')
-    end_date = date_box('请输入结束日期', '结束日期')
+    end_date = date_box('请输入结束日期', '结束 日期')
     date_list = create_date_list(start_date, end_date)
     if not date_list:
         alert_box('日期填写有误', '错误')

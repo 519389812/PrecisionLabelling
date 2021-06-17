@@ -7,7 +7,7 @@ import tkinter
 
 def login_ics_box() -> (str, str, str, str):
     while True:
-        login_command = pyautogui.password(text='请输入用户信息，各位为“账号/密码/账号级别/office号”', title='ICS登录', default='', mask='*')
+        login_command = pyautogui.password(text='请输入用户信息，格式为“账号/密码/账号级别/office号”', title='ICS登录', default='', mask='*')
         if not login_command:
             os._exit(0)
         login_command_pattern = re.compile(r'\d+/\w+/\d+/\w+')
@@ -17,6 +17,20 @@ def login_ics_box() -> (str, str, str, str):
             return user_name, password, level, office
         else:
             select = yes_no_box('输入格式有误，是否重新输入？', '格式错误')
+            if select == '是':
+                continue
+            else:
+                os._exit(0)
+
+
+def login_emg_box():
+    while True:
+        username = pyautogui.prompt(text='请输入EMG用户名', title='EMG登录')
+        password = pyautogui.password(text='请输入EMG密码', title='EMG登录', mask='*')
+        if username and password:
+            return username, password
+        else:
+            select = yes_no_box('输入有误，是否重新输入？', '错误')
             if select == '是':
                 continue
             else:

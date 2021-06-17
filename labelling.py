@@ -60,7 +60,7 @@ def save_data(data, file_path):
 
 
 def get_target_index(data, date):
-    target_index = data[(data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & data['航段始发机场'].isin(client_stations) == True].index
+    target_index = data[(data['客票状态'] == 'O') & (data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & data['航段始发机场'].isin(client_stations) == True].index
     if len(target_index) == 0:
         alert_box('无符合条件数据，程序退出。', '无数据')
         os._exit(0)
