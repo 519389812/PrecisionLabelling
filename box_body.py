@@ -23,20 +23,6 @@ def login_ics_box() -> (str, str, str, str):
                 os._exit(0)
 
 
-def login_emg_box():
-    while True:
-        username = pyautogui.prompt(text='请输入EMG用户名', title='EMG登录')
-        password = pyautogui.password(text='请输入EMG密码', title='EMG登录', mask='*')
-        if username and password:
-            return username, password
-        else:
-            select = yes_no_box('输入有误，是否重新输入？', '错误')
-            if select == '是':
-                continue
-            else:
-                os._exit(0)
-
-
 def yes_no_box(text: str, title: str) -> str:
     select = pyautogui.confirm(text=text, title=title, buttons=['是', '否'])
     if not select:

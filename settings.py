@@ -15,7 +15,9 @@ task_dir = 'task'
 source_dir = 'source'
 sales_dir = 'sales'
 driver_dir = 'driver'
-chrome_driver = '%s%s%s%schromedriver.exe' % (driver_dir, os.sep, '74', os.sep)
+pax_dir = 'pax'
+chrome_driver = '%s%schromedriver%s%s%schromedriver.exe' % (driver_dir, os.sep, os.sep, '91', os.sep)
+phantomjs_driver = '%s%sphantomjs%s%s%sphantomjs.exe' % (driver_dir, os.sep, os.sep, 'bin', os.sep)
 source_file = '%s%supgrade_miles.xlsx' % (source_dir, os.sep)
 
 
