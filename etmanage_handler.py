@@ -94,9 +94,17 @@ class Access:
         return label
 
     def confirm_alert(self):
-        alert = self.driver.switch_to.alert
-        alert.accept()
-        return alert.text
+        try:
+            alert = self.driver.switch_to.alert
+            alert.accept()
+            return alert.text
+        except:
+            pass
+
+    def is_login(self):
+        if self.driver.current_url == self.etmanage_url:
+            return False
+        return True
 
     def login_by_headless(self, inside=True):
         """
@@ -107,7 +115,7 @@ class Access:
         self.__init__()
         # self.driver = webdriver.PhantomJS(driver_path)
         self.driver.get(self.etmanage_url)
-        self.driver.implicitly_wait(3)
+        self.driver.implicitly_wait(5)
         username = self.driver.find_element_by_id("userName")
         username.send_keys(ask_box('请输入用户名', '用户名'))
         self.driver.implicitly_wait(2)
@@ -128,7 +136,29 @@ class Access:
         self.driver.implicitly_wait(2)
         login_btn = self.driver.find_element_by_id("loginBtn")
         login_btn.click()
-        self.driver.implicitly_wait(3)
+        self.driver.implicitly_wait(5)
 
-    def call_pax_list(self):
+    def switch_by_link(self, link_text):
+        element = self.driver.find_element_by_link_text(link_text)
+        element.click()
+        self.driver.implicitly_wait(5)
 
+    def call_pax_list(self, flt_num, flt_date, flt_num_tag_keyword='flightNo', date_tag_name_keyword='flightDate', search_tag_keyword='tktDispBtn', download_tag_keyword='导出EXCEL格式'):
+        flt_num_element = self.driver.find_element_by_name(flt_num_tag_keyword)
+        flt_num_element.send_keys(flt_num)
+        self.driver.implicitly_wait(2)
+        # 去除日期选择框的readonly属性
+        js = 'document.getElementByName("%s").removeAttribute("readonly")' % date_tag_name_keyword
+        self.driver.execute_script(js)
+        flt_date_element = self.driver.find_element_by_name(date_tag_name_keyword)
+        # 修改日期选择框的value
+        # execute_script()第一个参数是设置value，第二个参数表示获取的元素对象
+        # arguments[0]可以帮我们把selenium的元素传入到JavaScript语句中，arguments指的是execute_script()方法中js代码后面的所有参数
+        # arguments[0]表示第一个参数，argument[1]表示第二个参数
+        self.driver.execute_script("arguments[0].value = '%s'" % flt_date, flt_date_element)
+        search_button_element = self.driver.find_element_by_name(search_tag_keyword)
+        search_button_element.click()
+        self.driver.implicitly_wait(20)
+        download_button_element = self.driver.find_element_by_xpath('//input[@value="%s"]' % download_tag_keyword)
+        download_button_element.click()
+        self.driver.implicitly_wait(10)
