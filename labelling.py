@@ -5,6 +5,7 @@ from settings import *
 from common_func import *
 import pypinyin
 from itertools import product
+from etmanage_handler import Access
 
 
 def create_new_columns(data, args):
@@ -215,29 +216,34 @@ def check_or_comment(data, picked_data, file_path, comment_only):
 
 
 if __name__ == "__main__":
-    # try:
-    if not app_path or not client_auth_stations:
-        alert_box('欢迎使用本程序！首次使用请根据提示进行初始化设置。', '欢迎')
-        set_app_path()
-        set_ics_auth_station()
-        config = reload_config()
-        app_path = reload_config_value('app', 'app_path')
-        client_auth_stations = reload_config_client_station('client', 'auth')
-    data, date, file_path = get_data()
-    target_index = get_target_index(data, date)
-    data = labelling_matched_data(data, target_index)
-    picked_data = pick_data(data, target_index)
-    data = reset_init_status(data, picked_data, target_index, file_path)
-    picked_data = pick_data(data, target_index)
-    picked_data = describe_data(picked_data, comment_only)
-    window_object = activate_app(app_path, title_keyword)
-    activate_window(window_object)
-    maximize_window(window_object)
-    x_start, y_start, x_end, y_end = adjust_location()
-    switch_input_language()
-    login_ics(x_start, y_start, x_end, y_end)
-    check_or_comment(data, picked_data, file_path, comment_only)
-    alert_box('备注完毕，结果请查看%s文件，感谢使用！' % file_path, '退出程序')
+    et_access = Access()
+    try:
+        login_etmanage(et_access)
+    finally:
+        et_access.close_driver()
+    # et_access.call_pax_list('3039', '2021-06-22')
+    # if not app_path or not client_auth_stations:
+    #     alert_box('欢迎使用本程序！首次使用请根据提示进行初始化设置。', '欢迎')
+    #     set_app_path()
+    #     set_ics_auth_station()
+    #     config = reload_config()
+    #     app_path = reload_config_value('app', 'app_path')
+    #     client_auth_stations = reload_config_client_station('client', 'auth')
+    # data, date, file_path = get_data()
+    # target_index = get_target_index(data, date)
+    # data = labelling_matched_data(data, target_index)
+    # picked_data = pick_data(data, target_index)
+    # data = reset_init_status(data, picked_data, target_index, file_path)
+    # picked_data = pick_data(data, target_index)
+    # picked_data = describe_data(picked_data, comment_only)
+    # window_object = activate_app(app_path, title_keyword)
+    # activate_window(window_object)
+    # maximize_window(window_object)
+    # x_start, y_start, x_end, y_end = adjust_location()
+    # switch_input_language()
+    # login_ics(x_start, y_start, x_end, y_end)
+    # check_or_comment(data, picked_data, file_path, comment_only)
+    # alert_box('备注完毕，结果请查看%s文件，感谢使用！' % file_path, '退出程序')
     # except:
     #     alert_box('程序出现问题，正在退出程序，感谢使用！', '退出程序')
     # finally:

@@ -48,6 +48,13 @@ def ask_box(text: str = '', title: str = '', default: str = '') -> str:
     return answer
 
 
+def password_box(text: str = '', title: str = '', default: str = '') -> str:
+    answer = pyautogui.password(text=text, title=title, default=default)
+    if not answer:
+        os._exit(0)
+    return answer
+
+
 def open_file_box(title='选择文件', initialdir='.', filetypes=None):
     window = tkinter.Tk()
     window.withdraw()  # 隐藏

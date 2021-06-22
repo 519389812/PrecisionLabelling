@@ -4,19 +4,18 @@ import execjs
 import pandas as pd
 import base64
 import configparser
-from bs4 import BeautifulSoup
 import time
 from settings import chrome_driver, pax_dir, phantomjs_driver
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from box_body import ask_box
+from box_body import ask_box, password_box
 
 
 class Access:
     """
     接入南航系统获取数据
     """
-    def __init__(self, engine='chrome'):
+    def __init__(self, engine='Chrome'):
         """
         基本的网络配置
         """
@@ -81,7 +80,6 @@ class Access:
 
         :return imgs: <list>数据格式验证码
         """
-        self.driver.save_screenshot('etCaptcha.png')
         rand_image_size = rand_image.size
         rand_image_location = rand_image.location
         rangle = (int(rand_image_location['x']), int(rand_image_location['y']), int(rand_image_location['x'] + rand_image_size['width']), int(rand_image_location['y'] + rand_image_size['height']))  # 计算验证码整体坐标
@@ -113,14 +111,19 @@ class Access:
         :return: 无
         """
         self.__init__()
-        # self.driver = webdriver.PhantomJS(driver_path)
         self.driver.get(self.etmanage_url)
         self.driver.implicitly_wait(5)
+        try:
+            self.switch_by_id('details-button')
+            self.switch_by_id('proceed-link')
+        except:
+            pass
+        self.driver.save_screenshot('etCaptcha.png')
         username = self.driver.find_element_by_id("userName")
         username.send_keys(ask_box('请输入用户名', '用户名'))
         self.driver.implicitly_wait(2)
         password = self.driver.find_element_by_id("password")
-        password.send_keys(ask_box('请输入密码', '密码'))
+        password.send_keys(password_box('请输入密码', '密码'))
         self.driver.implicitly_wait(2)
         if inside:
             rand_image = self.driver.find_element_by_id("randImage")
@@ -136,6 +139,11 @@ class Access:
         self.driver.implicitly_wait(2)
         login_btn = self.driver.find_element_by_id("loginBtn")
         login_btn.click()
+        self.driver.implicitly_wait(5)
+
+    def switch_by_id(self, id_):
+        element = self.driver.find_element_by_id(id_)
+        element.click()
         self.driver.implicitly_wait(5)
 
     def switch_by_link(self, link_text):
