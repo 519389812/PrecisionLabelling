@@ -32,6 +32,9 @@ def get_st_data(date_list, start_date, end_date):
                     st_data_temp.replace('\t', '', regex=True, inplace=True)
                     st_data_temp['飞行日期'] = pd.to_datetime(st_data_temp['飞行日期']).dt.strftime('%Y-%m-%d')
                     st_data_temp.fillna('', inplace=True)
+                    # CAN
+                    # st_data_temp = st_data_temp[st_data_temp['航段始发机场'] == 'CAN']
+                    # URC
                     st_data_temp = st_data_temp[st_data_temp['航段始发机场'] == 'URC']
                     st_data = pd.concat([st_data, st_data_temp], ignore_index=True, join='outer')
                 else:
@@ -40,7 +43,7 @@ def get_st_data(date_list, start_date, end_date):
         alert_box('未提取到st数据', '错误')
         os._exit(0)
     st_data.fillna('', inplace=True)
-    st_data = st_data[['UID', '航段', '飞行日期', '电子客票号', '查询', '备注']]
+    st_data = st_data[['UID', '航段', '飞行日期', '航段性质', '会员级别', 'OC母舱位', '电子客票号', '查询', '备注']]
     st_data.to_csv('%s%s%s_%s_st_total.csv' % (task_dir, os.sep, start_date, end_date))
     return st_data
 
@@ -57,16 +60,18 @@ def get_sales_data(start_date, end_date):
         for file in files:
             sales_data_temp = pd.read_excel(os.path.join(root, file), skiprows=3, converters={'关联票号': str})
             if sales_data_temp.shape[0] <= 4:
-                alert_box('未提取到销售数据', '错误')
-                os._exit(0)
+                continue
             sales_data_temp.drop(sales_data_temp.head(2).index, inplace=True)
+            # CAN
+            # sales_data_temp = sales_data_temp[(sales_data_temp['起飞机场'] == 'CAN') & (sales_data_temp['销售单位'] == 'SMARTSERVICE系统') & (sales_data_temp['下单渠道'] == 'SS') & (sales_data_temp['EMD类型'].isin(['柜台升舱', '一人多座', '休息室升舱', '机场柜台升舱']) == True)]
+            # URC
             sales_data_temp = sales_data_temp[(sales_data_temp['起飞机场'] == 'URC') & (sales_data_temp['销售单位'] == 'SMARTSERVICE系统') & (sales_data_temp['下单渠道'] == 'SS') & (sales_data_temp['EMD类型'].isin(['柜台升舱', '一人多座', '休息室升舱', '机场柜台升舱']) == True)]
             sales_data = pd.concat([sales_data, sales_data_temp], ignore_index=True, join='outer')
     if sales_data.shape[0] == 0:
-        alert_box('未提取到st数据', '错误')
+        alert_box('未提取到销售数据', '错误')
         os._exit(0)
     sales_data.fillna('', inplace=True)
-    sales_data = sales_data[['EMD类型', '关联票号', '支付价', '扣减里程/配额']]
+    sales_data = sales_data[['EMD类型', '关联票号', '支付价', '扣减里程/配额', '订单下单人姓名']]
     sales_data.to_csv('%s%s%s_%s_sales_total.csv' % (sales_dir, os.sep, start_date, end_date))
     return sales_data
 
@@ -79,6 +84,7 @@ def compare_data(st_data, sales_data):
 
 
 def describe_data(data):
+    # CAN时启用
     # marked_international_count = data[((data['查询'] == '是') | (data['备注'] == '是')) & (data['航段'].isin(international) == True)].shape[0]
     # marked_international_successful_count = data[((data['查询'] == '是') | (data['备注'] == '是')) & (data['航段'].isin(international) == True) & (data['关联票号'] != '')].shape[0]
     # marked_international_successful_rate = marked_international_successful_count / marked_international_count
@@ -104,6 +110,7 @@ def describe_data(data):
     total_success_rate = total_success_count / total_count
     with open('result.txt', 'w') as f:
         f.write(
+            # CAN时启用
             # '国际备注旅客总数：%d\n国际备注旅客销售成功数：%d\n国际备注旅客销售成功率：%.5f\n\n'
             # '国际旅客总数：%d\n国际旅客销售成功数：%d\n国际旅客销售成功率：%.5f\n\n\n\n'
             #
@@ -113,6 +120,7 @@ def describe_data(data):
             '备注旅客总数：%d\n备注旅客销售成功数：%d\n备注旅客销售成功率：%.5f\n\n'
             '提取旅客总数：%d\n提取旅客销售数：%d\n提取旅客销售率：%.5f\n\n\n\n'
             % (
+                # CAN时启用
                 # marked_international_count, marked_international_successful_count, marked_international_successful_rate,
                 # total_international_count, total_international_successful_count, total_international_successful_rate,
                 # marked_domestic_count, marked_domestic_successful_count, marked_domestic_successful_rate,
