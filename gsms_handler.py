@@ -1,11 +1,9 @@
-import requests
 from PIL import Image
-import execjs
 import datetime
 import json
 import pandas as pd
-import time
-from selenium import webdriver
+import os
+from settings import flt_dir
 from box_body import ask_box, password_box
 
 
@@ -32,10 +30,6 @@ headers = {
     'Referer': 'https://gsms.csair.com/main_defaultmain.gsms#',
     'Accept-Language': 'zh-CN,zh;q=0.9',
 }
-
-
-def new_session():
-    return requests.Session()
 
 
 def data_exchange(the_date):
@@ -108,7 +102,7 @@ def login_by_headless(driver, session, inside=True):
         session.cookies.set(cookie['name'], cookie['value'])
 
 
-def call_flight_list(session, date='.', dep_code='CAN', type_="国际出港"):
+def call_flight_list(session, date, dep_code='CAN', type_="国际出港"):
     types = {
         '出港航班': 'O',
         '进港航班': 'I',
@@ -123,7 +117,7 @@ def call_flight_list(session, date='.', dep_code='CAN', type_="国际出港"):
         '所有航班': 'MUO',
     }
     request_data = {
-        'fltDate': data_exchange(date),
+        'fltDate': date,
         'airport': dep_code,
         'fcasType': types[type_],
         'fcasTypeText': type_,
@@ -137,12 +131,13 @@ def call_flight_list(session, date='.', dep_code='CAN', type_="国际出港"):
             try:
                 for row in rows:
                     flt_num, flt_date, dep_code, arr_code, airline_code, soc_task, tail_num = row['fltNr'], row['schDepDtStr'], row['depCd'], row['arvCd'], row['alnCd'], row['socTask'], row['tailNr']
-                    if airline_code == 'CZ' and soc_task != 'F':
+                    if airline_code == 'CZ' and soc_task != 'F' and soc_task != 'H':
                         date_time = flt_date.split(" ")
                         date = date_time[0]
                         time = date_time[1]
                         flight_list.append((flt_num, flt_date, date, time, dep_code, arr_code, airline_code, soc_task, tail_num))
                 flight_list = pd.DataFrame(flight_list, columns=['flt_num', 'flt_datetime', 'flt_date', 'flt_time', 'departure', 'arrival', 'airline', 'task', 'tail number'])
+                flight_list.to_excel('%s%s%s.xlsx' % (flt_dir, os.sep, date))
                 return flight_list
             except:
                 return

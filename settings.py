@@ -16,8 +16,11 @@ source_dir = 'source'
 sales_dir = 'sales'
 driver_dir = 'driver'
 pax_dir = 'pax'
+flt_dir = 'flt'
 chrome_driver = '%s%schromedriver%s%s%schromedriver.exe' % (driver_dir, os.sep, os.sep, '91', os.sep)
 phantomjs_driver = '%s%sphantomjs%s%s%sphantomjs.exe' % (driver_dir, os.sep, os.sep, 'bin', os.sep)
+geckodriver_driver = '%s%sgeckodriver%s%s%sgeckodriver.exe' % (driver_dir, os.sep, os.sep, '0.29.1', os.sep)
+
 source_file = '%s%supgrade_miles.xlsx' % (source_dir, os.sep)
 
 
@@ -95,11 +98,12 @@ client_stations = reload_config_client_station('client', 'stations')
 comment_only = bool(int(reload_config_value('client', 'comment')))
 
 
-check_source_file()
-upgrade_miles = pd.read_excel(source_file)
-upgrade_miles.fillna(0, inplace=True)
-upgrade_miles['city_pair'] = upgrade_miles['departure'] + '-' + upgrade_miles['destination']
-upgrade_miles.set_index(['city_pair'], inplace=True)
+# check_source_file()
+# upgrade_miles = pd.read_excel(source_file)
+# upgrade_miles.fillna(0, inplace=True)
+# upgrade_miles['city_pair'] = upgrade_miles['departure'] + '-' + upgrade_miles['destination']
+# upgrade_miles.set_index(['city_pair'], inplace=True)
+
 # upgrade_miles['miles_y_to_j'] = upgrade_miles['miles_y_to_j'].astype('float64')
 
 

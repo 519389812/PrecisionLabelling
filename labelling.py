@@ -5,7 +5,8 @@ from settings import *
 from common_func import *
 import pypinyin
 from itertools import product
-from etmanage_handler import Access
+import driver_handler
+import gsms_handler
 
 
 def create_new_columns(data, args):
@@ -25,7 +26,6 @@ def combine_columns(data):
 
 def get_data():
     while True:
-        date = get_date()
         file_path = open_file_box('选择数据文件', './task', [('csv文件', '.csv')])
         try:
             data = pd.read_csv(file_path, converters={'会员卡号': str, '飞行日期': str, 'OC航班号': str, '电子客票号': str}, encoding='gbk')
@@ -50,7 +50,7 @@ def get_data():
         data = combine_columns(data)
         data = create_new_columns(data, additional_data_columns + labels)
         data = reset_columns(data, labels)
-        return data, date, file_path
+        return data, file_path
 
 
 def save_data(data, file_path):
@@ -215,13 +215,47 @@ def check_or_comment(data, picked_data, file_path, comment_only):
         save_data(data, file_path)
 
 
+def login_etmanage(access_object):
+    while True:
+        access_object.login_by_headless()
+        access_object.confirm_alert()
+        status = access_object.is_login()
+        if status:
+            break
+        else:
+            choice = yes_no_box('登录emg失败，是否重新登录？', 'emg登录')
+            if choice == '是':
+                continue
+            else:
+                alert_box('您正在退出程序，感谢使用', '退出程序')
+                os._exit(0)
+
+
+def login_gsms():
+    while True:
+        gsms_handler.login_by_headless(driver, session)
+        if gsms_handler.is_login(session):
+            break
+        else:
+            choice = yes_no_box('登录gsms失败，是否重新登录？', 'gsms登录')
+            if choice == '是':
+                continue
+            else:
+                alert_box('您正在退出程序，感谢使用', '退出程序')
+                os._exit(0)
+
+
 if __name__ == "__main__":
-    et_access = Access()
+    date = get_date()
+
+    driver = driver_handler.new_driver('FireFox', pax_dir)
+    session = driver_handler.new_session()
     try:
-        login_etmanage(et_access)
+        login_gsms()
+        data = gsms_handler.call_flight_list(session, date, 'CAN')
+        print(data)
     finally:
-        et_access.close_driver()
-    # et_access.call_pax_list('3039', '2021-06-22')
+        driver_handler.close_driver(driver)
     # if not app_path or not client_auth_stations:
     #     alert_box('欢迎使用本程序！首次使用请根据提示进行初始化设置。', '欢迎')
     #     set_app_path()
@@ -229,7 +263,7 @@ if __name__ == "__main__":
     #     config = reload_config()
     #     app_path = reload_config_value('app', 'app_path')
     #     client_auth_stations = reload_config_client_station('client', 'auth')
-    # data, date, file_path = get_data()
+    # data, file_path = get_data()
     # target_index = get_target_index(data, date)
     # data = labelling_matched_data(data, target_index)
     # picked_data = pick_data(data, target_index)

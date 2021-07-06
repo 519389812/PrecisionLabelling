@@ -136,37 +136,5 @@ def login_ics(x_start, y_start, x_end, y_end):
                     os._exit(0)
 
 
-def login_etmanage(access_object):
-    while True:
-        access_object.login_by_headless()
-        access_object.confirm_alert()
-        status = access_object.is_login()
-        if status:
-            break
-        else:
-            choice = yes_no_box('登录emg失败，是否重新登录？', 'emg登录')
-            if choice == '是':
-                continue
-            else:
-                alert_box('您正在退出程序，感谢使用', '退出程序')
-                os._exit(0)
-
-
-def login_gsms(access_object):
-    while True:
-        access_object.login_by_headless()
-        access_object.confirm_alert()
-        status = access_object.is_login()
-        if status:
-            break
-        else:
-            choice = yes_no_box('登录emg失败，是否重新登录？', 'emg登录')
-            if choice == '是':
-                continue
-            else:
-                alert_box('您正在退出程序，感谢使用', '退出程序')
-                os._exit(0)
-
-
 if __name__ == '__main__':
     pass
