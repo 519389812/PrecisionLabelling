@@ -24,9 +24,9 @@ geckodriver_driver = '%s%sgeckodriver%s%s%sgeckodriver.exe' % (driver_dir, os.se
 source_file = '%s%supgrade_miles.xlsx' % (source_dir, os.sep)
 
 
-def check_source_file():
-    if not os.path.exists(source_file):
-        alert_box('缺少 %s 文件' % source_file, '错误')
+def check_file(file):
+    if not os.path.exists(file):
+        alert_box('缺少 %s 文件' % file, '错误')
         os._exit(0)
 
 
@@ -53,7 +53,7 @@ def make_dir(dir_path):
         os.mkdir(dir_path)
 
 
-for dir_ in [config_dir, task_dir, source_dir]:
+for dir_ in [config_dir, task_dir, source_dir, sales_dir, driver_dir, pax_dir, flt_dir]:
     make_dir(dir_)
 
 
@@ -98,7 +98,8 @@ client_stations = reload_config_client_station('client', 'stations')
 comment_only = bool(int(reload_config_value('client', 'comment')))
 
 
-# check_source_file()
+# for file in [source_file, chrome_driver, phantomjs_driver, geckodriver_driver]
+#     check_file(file)
 # upgrade_miles = pd.read_excel(source_file)
 # upgrade_miles.fillna(0, inplace=True)
 # upgrade_miles['city_pair'] = upgrade_miles['departure'] + '-' + upgrade_miles['destination']

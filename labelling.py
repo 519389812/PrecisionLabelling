@@ -247,13 +247,20 @@ def login_gsms():
 
 if __name__ == "__main__":
     date = get_date()
+    need_driver = False
+    download_flt = False
+    download_pax = False
+    if not os.path.exists('%s%s%s.xlsx' % (flt_dir, os.sep, date)):
+        need_driver = True
+        download_flt = True
+
+    for flt in flt_list.iterrows():
 
     driver = driver_handler.new_driver('FireFox', pax_dir)
     session = driver_handler.new_session()
     try:
         login_gsms()
         data = gsms_handler.call_flight_list(session, date, 'CAN')
-        print(data)
     finally:
         driver_handler.close_driver(driver)
     # if not app_path or not client_auth_stations:
