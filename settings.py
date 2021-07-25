@@ -15,8 +15,9 @@ task_dir = 'task'
 source_dir = 'source'
 sales_dir = 'sales'
 driver_dir = 'driver'
-pax_dir = 'pax'
 flt_dir = 'flt'
+pax_dir = 'pax'
+pax_temporary_dir = 'paxTemporary'
 chrome_driver = '%s%schromedriver%s%s%schromedriver.exe' % (driver_dir, os.sep, os.sep, '91', os.sep)
 phantomjs_driver = '%s%sphantomjs%s%s%sphantomjs.exe' % (driver_dir, os.sep, os.sep, 'bin', os.sep)
 geckodriver_driver = '%s%sgeckodriver%s%s%sgeckodriver.exe' % (driver_dir, os.sep, os.sep, '0.29.1', os.sep)
@@ -53,7 +54,7 @@ def make_dir(dir_path):
         os.mkdir(dir_path)
 
 
-for dir_ in [config_dir, task_dir, source_dir, sales_dir, driver_dir, pax_dir, flt_dir]:
+for dir_ in [config_dir, task_dir, source_dir, sales_dir, driver_dir, pax_dir, pax_temporary_dir]:
     make_dir(dir_)
 
 

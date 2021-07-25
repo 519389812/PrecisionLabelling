@@ -33,13 +33,20 @@ def confirm_alert(driver):
         pass
 
 
-def is_login(driver):
-    if driver.current_url == etmanage_url:
+def is_login(session):
+    try:
+        response = session.post(check_url, data={"lang": "en"})
+        print(response.url)
+        print(response.text)
+        if response.url == check_url or response.text == '{"result":"success"}':
+            return True
+        else:
+            return False
+    except:
         return False
-    return True
 
 
-def login_by_headless(driver, inside=True):
+def login_by_headless(driver, session, inside=True):
     driver.get(etmanage_url)
     driver.implicitly_wait(5)
     try:
@@ -69,9 +76,17 @@ def login_by_headless(driver, inside=True):
     login_btn = driver.find_element_by_id("loginBtn")
     login_btn.click()
     driver.implicitly_wait(5)
+    confirm_alert(driver)
+    cookies = driver.get_cookies()
+    # session.headers.update(headers)
+    for cookie in cookies:
+        session.cookies.set(cookie['name'], cookie['value'])
 
 
 def call_pax_list(driver, flt_num, flt_date, flt_num_tag_keyword='flightNo', date_tag_name_keyword='flightDate', search_tag_keyword='tktDispBtn', download_tag_keyword='导出EXCEL格式'):
+    driver.switch_to.frame(driver.find_elements_by_tag_name('iframe')[0])
+    ticket_element = driver.find_element_by_link_text('客票查询')
+    ticket_element.click()
     flt_num_element = driver.find_element_by_name(flt_num_tag_keyword)
     flt_num_element.send_keys(flt_num)
     driver.implicitly_wait(2)

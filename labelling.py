@@ -1,3 +1,5 @@
+import pandas as pd
+
 from window_handler import *
 import ics_data_collector
 import ticket_data_collector
@@ -7,6 +9,8 @@ import pypinyin
 from itertools import product
 import driver_handler
 import gsms_handler
+import etmanage_handler
+import shutil
 
 
 def create_new_columns(data, args):
@@ -215,12 +219,11 @@ def check_or_comment(data, picked_data, file_path, comment_only):
         save_data(data, file_path)
 
 
-def login_etmanage(access_object):
+def login_etmanage(driver):
+    session = driver_handler.new_session()
     while True:
-        access_object.login_by_headless()
-        access_object.confirm_alert()
-        status = access_object.is_login()
-        if status:
+        etmanage_handler.login_by_headless(driver, session)
+        if etmanage_handler.is_login(session):
             break
         else:
             choice = yes_no_box('登录emg失败，是否重新登录？', 'emg登录')
@@ -231,7 +234,8 @@ def login_etmanage(access_object):
                 os._exit(0)
 
 
-def login_gsms():
+def login_gsms(driver):
+    session = driver_handler.new_session()
     while True:
         gsms_handler.login_by_headless(driver, session)
         if gsms_handler.is_login(session):
@@ -245,32 +249,103 @@ def login_gsms():
                 os._exit(0)
 
 
+def get_download_pax_flt_list(data, date):
+    data = data[(data['客票状态'] == 'O') & (data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & (data['航段性质'] == '国际')]
+    data = data.drop_duplicates(['OC航班号'])
+    flt_list = data[['OC航班号', '飞行日期']]
+    return flt_list
+
+
+def download_pax(flt_list):
+    need_close_driver = False
+    # try:
+    for _, flt in flt_list.iterrows():
+        if not os.path.exists('%s%s%s_%s.xlsx' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号'])):
+            if 'driver' not in locals():
+                driver = driver_handler.new_driver('FireFox', pax_dir)
+                need_close_driver = True
+                break
+    pax = pd.DataFrame(None)
+    for _, flt in flt_list.iterrows():
+        if not os.path.exists('%s%s%s_%s.xlsx' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号'])):
+            # try:
+            login_etmanage(driver)
+            etmanage_handler.call_pax_list(driver, flt['OC航班号'], flt['飞行日期'], flt_num_tag_keyword='flightNo', date_tag_name_keyword='flightDate', search_tag_keyword='tktDispBtn', download_tag_keyword='导出EXCEL格式')
+            rename_last_downloaded_file(pax_temporary_dir, pax_dir, '%s_%s.xlsx' % (flt['飞行日期'], flt['OC航班号']))
+            pax_per_flt = pd.read_excel('%s%s%s_%s.xlsx' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号']))
+            pax = pd.concat([pax, pax_per_flt], ignore_index=True, join='outer')
+            # except:
+            #     pass
+# finally:
+    if need_close_driver:
+        driver_handler.close_driver(driver)
+    return pax
+
+
+def rename_last_downloaded_file(temporary_dir, destination_dir, new_file_name, time_out=5):
+
+    def get_last_downloaded_file_path(temporary_dir):
+        count = 0
+        while not os.listdir(temporary_dir):
+            time.sleep(1)
+            count = count_time(count)
+        return max([os.path.join(temporary_dir, f) for f in os.listdir(temporary_dir)], key=os.path.getctime)
+
+    def count_time(count):
+        count += 1
+        if count > time_out:
+            alert_box('下载文件失败，请检查网络连接', '错误')
+            os._exit(0)
+        return count
+
+    count = 0
+    while '.part' in get_last_downloaded_file_path(temporary_dir):
+        time.sleep(1)
+        count = count_time(count)
+    shutil.move(get_last_downloaded_file_path(temporary_dir), os.path.join(destination_dir, new_file_name))
+
+
+def labelling_matched_data_local(pax):
+    ins = pd.read_excel('%s%sINS.xlsx' % (source_dir, os.sep), sheet_name='sheet1', header=0, index_col=0)
+    # dly = pd.read_excel('%s%sDLY.xlsx' % (source_dir, os.sep), sheet_name='sheet1', header=0, index_col=0)
+    dmg = pd.read_excel('%s%sDMG.xlsx' % (source_dir, os.sep), sheet_name='sheet1', header=0, index_col=0)
+    com = pd.read_excel('%s%sCOM.xlsx' % (source_dir, os.sep), sheet_name='sheet1', header=0, index_col=0)
+
+    p = {
+        'fltDate': pax['flt_date'].values,
+        'fltNo': pax['flt_num'].values,
+        'station': pax['station'].values,
+        'lastname': pax['last_name'].values,
+        'firstname': pax['first_name'].values,
+        'Ppt': pax['passport_number'].values,
+    }
+
+    q1 = pd.merge(pd.DataFrame(p).dropna(), dmg['证件号'].to_frame().dropna(), left_on='Ppt',
+                  right_on='证件号').drop_duplicates()
+    # q2 = pd.merge(pd.DataFrame(p).dropna(), dly['证件号'].to_frame().dropna(), left_on='Ppt', right_on='证件号').drop_duplicates()
+    q3 = pd.merge(pd.DataFrame(p).dropna(), ins['被保险人证件号码'].to_frame().dropna(), left_on='Ppt',
+                  right_on='被保险人证件号码').drop_duplicates()
+    q4 = pd.merge(pd.DataFrame(p).dropna(), com[['旅客姓名', '护照号']].dropna(), left_on='Ppt',
+                  right_on='护照号').drop_duplicates()
+
+    q1.to_excel('%s%s%s_申报行李破损的出港旅客.xlsx' % (ics_results_dir, os.sep, date), sheet_name='sheet1', encoding='gbk')
+    # q2.to_excel('%s%s%s_申报行李晚到的出港旅客.xlsx' % (ics_results_dir, os.sep, date), sheet_name='sheet1', encoding='gbk')
+    q3.to_excel('%s%s%s_购买保险的出港旅客.xlsx' % (ics_results_dir, os.sep, date), sheet_name='sheet1', encoding='gbk')
+    q4.to_excel('%s%s%s_存在投诉记录的出港旅客.xlsx' % (ics_results_dir, os.sep, date), sheet_name='sheet1', encoding='gbk')
+
+
 if __name__ == "__main__":
     date = get_date()
-    need_driver = False
-    download_flt = False
-    download_pax = False
-    if not os.path.exists('%s%s%s.xlsx' % (flt_dir, os.sep, date)):
-        need_driver = True
-        download_flt = True
-
-    for flt in flt_list.iterrows():
-
-    driver = driver_handler.new_driver('FireFox', pax_dir)
-    session = driver_handler.new_session()
-    try:
-        login_gsms()
-        data = gsms_handler.call_flight_list(session, date, 'CAN')
-    finally:
-        driver_handler.close_driver(driver)
-    # if not app_path or not client_auth_stations:
-    #     alert_box('欢迎使用本程序！首次使用请根据提示进行初始化设置。', '欢迎')
-    #     set_app_path()
-    #     set_ics_auth_station()
-    #     config = reload_config()
-    #     app_path = reload_config_value('app', 'app_path')
-    #     client_auth_stations = reload_config_client_station('client', 'auth')
-    # data, file_path = get_data()
+    if not app_path or not client_auth_stations:
+        alert_box('欢迎使用本程序！首次使用请根据提示进行初始化设置。', '欢迎')
+        set_app_path()
+        set_ics_auth_station()
+        config = reload_config()
+        app_path = reload_config_value('app', 'app_path')
+        client_auth_stations = reload_config_client_station('client', 'auth')
+    data, file_path = get_data()
+    flt_list = get_download_pax_flt_list(data, date)
+    pax = download_pax(flt_list)
     # target_index = get_target_index(data, date)
     # data = labelling_matched_data(data, target_index)
     # picked_data = pick_data(data, target_index)
