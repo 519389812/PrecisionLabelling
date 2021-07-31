@@ -272,10 +272,11 @@ def download_pax(flt_list):
             login_etmanage(driver)
             etmanage_handler.call_pax_list(driver, flt['OC航班号'], flt['飞行日期'], flt_num_tag_keyword='flightNo', date_tag_name_keyword='flightDate', search_tag_keyword='tktDispBtn', download_tag_keyword='导出EXCEL格式')
             rename_last_downloaded_file(pax_temporary_dir, pax_dir, '%s_%s.xlsx' % (flt['飞行日期'], flt['OC航班号']))
-            pax_per_flt = pd.read_excel('%s%s%s_%s.xlsx' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号']))
-            pax = pd.concat([pax, pax_per_flt], ignore_index=True, join='outer')
             # except:
             #     pass
+        pax_per_flt = pd.read_excel('%s%s%s_%s.xlsx' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号']))
+        pax = pd.concat([pax, pax_per_flt], ignore_index=True, join='outer')
+
 # finally:
     if need_close_driver:
         driver_handler.close_driver(driver)

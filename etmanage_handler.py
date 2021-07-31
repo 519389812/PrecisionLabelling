@@ -36,8 +36,6 @@ def confirm_alert(driver):
 def is_login(session):
     try:
         response = session.post(check_url, data={"lang": "en"})
-        print(response.url)
-        print(response.text)
         if response.url == check_url or response.text == '{"result":"success"}':
             return True
         else:
@@ -87,11 +85,13 @@ def call_pax_list(driver, flt_num, flt_date, flt_num_tag_keyword='flightNo', dat
     driver.switch_to.frame(driver.find_elements_by_tag_name('iframe')[0])
     ticket_element = driver.find_element_by_link_text('客票查询')
     ticket_element.click()
+    driver.switch_to.default_content()
+    driver.switch_to.frame(driver.find_elements_by_tag_name('iframe')[1])
     flt_num_element = driver.find_element_by_name(flt_num_tag_keyword)
     flt_num_element.send_keys(flt_num)
     driver.implicitly_wait(2)
     # 去除日期选择框的readonly属性
-    js = 'document.getElementByName("%s").removeAttribute("readonly")' % date_tag_name_keyword
+    js = 'document.getElementsByName("%s")[0].removeAttribute("readonly")' % date_tag_name_keyword
     driver.execute_script(js)
     flt_date_element = driver.find_element_by_name(date_tag_name_keyword)
     # 修改日期选择框的value
@@ -99,6 +99,8 @@ def call_pax_list(driver, flt_num, flt_date, flt_num_tag_keyword='flightNo', dat
     # arguments[0]可以帮我们把selenium的元素传入到JavaScript语句中，arguments指的是execute_script()方法中js代码后面的所有参数
     # arguments[0]表示第一个参数，argument[1]表示第二个参数
     driver.execute_script("arguments[0].value = '%s'" % flt_date, flt_date_element)
+    # driver.f  缺少查找父元素
+
     search_button_element = driver.find_element_by_name(search_tag_keyword)
     search_button_element.click()
     driver.implicitly_wait(20)
