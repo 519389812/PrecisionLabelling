@@ -75,7 +75,7 @@ def get_target_index(data, date):
 def pick_data(data, target_index):
     data.replace('\t', '', regex=True, inplace=True)
     target_data = data.loc[target_index, :]
-    picked_data = target_data[(target_data['LCSCJ'] == '是') | (target_data['LCSCF'] == '是') | (target_data['LCGQ'] == '是') | (target_data['XFSC'] == '是') | (target_data['XFDZ'] == '是') | (target_data['PJBMG'] == '是')]
+    picked_data = target_data[(target_data['LCSCJ'] == '是') | (target_data['LCSCF'] == '是') | (target_data['LCGQ'] == '是') | (target_data['XFSC'] == '是') | (target_data['XFDZ'] == '是') | (target_data['PJBMG'] == '是') | (target_data['XLPS'] == '是') | (target_data['BX'] == '是') | (target_data['TS'] == '是')]
     return picked_data
 
 
@@ -111,22 +111,22 @@ def reset_columns(data, args):
 def labelling_matched_data(data, target_index):
     target_data = data.loc[target_index, :]
     for city_pair in list(upgrade_miles.index):
-        index_ = target_data[((target_data['OC母舱位'] == 'Y') | (target_data['OC母舱位'] == 'W')) & (target_data['航段'] == city_pair) & (target_data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_y_to_j'])].index
+        index_ = target_data[((target_data['OC实际母舱位'] == 'Y') | (target_data['OC实际母舱位'] == 'W')) & (target_data['航段'] == city_pair) & (target_data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_y_to_j'])].index
         data.loc[index_, 'LCSCJ'] = '是'
         if upgrade_miles.loc[city_pair, 'miles_j_to_f'] != 0:
-            index_ = target_data[(target_data['OC母舱位'] == 'J') & (target_data['航段'] == city_pair) & (target_data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_j_to_f'])].index
+            index_ = target_data[(target_data['OC实际母舱位'] == 'J') & (target_data['航段'] == city_pair) & (target_data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_j_to_f'])].index
             data.loc[index_, 'LCSCF'] = '是'
-            index_ = target_data[((target_data['OC母舱位'] == 'Y') | (target_data['OC母舱位'] == 'W')) & (target_data['航段'] == city_pair) & (target_data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_y_to_f'])].index
+            index_ = target_data[((target_data['OC实际母舱位'] == 'Y') | (target_data['OC实际母舱位'] == 'W')) & (target_data['航段'] == city_pair) & (target_data['可用里程余额'] >= upgrade_miles.loc[city_pair, 'miles_y_to_f'])].index
             data.loc[index_, 'LCSCF'] = '是'
             index_ = target_data[(target_data['近一年购买升舱次数'] == 'J') & (target_data['航段'] == city_pair)].index
             data.loc[index_, 'XFSC'] = '是'
-    index_ = target_data[(target_data['航段性质'] == '国内') & ((target_data['OC母舱位'] == 'Y') | (target_data['OC母舱位'] == 'W')) & (target_data['OC子舱位'] != 'X') & (target_data['可用里程余额'] >= upgrade_miles.loc['OTHER-OTHER', 'miles_y_to_j'])].index
+    index_ = target_data[(target_data['航段性质'] == '国内') & ((target_data['OC实际母舱位'] == 'Y') | (target_data['OC实际母舱位'] == 'W')) & (target_data['OC实际子舱位'] != 'X') & (target_data['可用里程余额'] >= upgrade_miles.loc['OTHER-OTHER', 'miles_y_to_j'])].index
     data.loc[index_, 'LCSCJ'] = '是'
     index_ = target_data[target_data['近三月到期里程'] >= 6000].index
     data.loc[index_, 'LCGQ'] = '是'
-    index_ = target_data[(target_data['近一年购买升舱次数'] > 0) & ((target_data['OC母舱位'] == 'Y') | (target_data['OC母舱位'] == 'W')) & (target_data['OC子舱位'] != 'X') & (target_data['航段性质'] == '国内')].index
+    index_ = target_data[(target_data['近一年购买升舱次数'] > 0) & ((target_data['OC实际母舱位'] == 'Y') | (target_data['OC实际母舱位'] == 'W')) & (target_data['OC实际子舱位'] != 'X') & (target_data['航段性质'] == '国内')].index
     data.loc[index_, 'XFSC'] = '是'
-    index_ = target_data[(target_data['近一年购买升舱次数'] > 0) & ((target_data['OC母舱位'] == 'Y') | (target_data['OC母舱位'] == 'W')) & (target_data['航段性质'] != '国内')].index
+    index_ = target_data[(target_data['近一年购买升舱次数'] > 0) & ((target_data['OC实际母舱位'] == 'Y') | (target_data['OC实际母舱位'] == 'W')) & (target_data['航段性质'] != '国内')].index
     data.loc[index_, 'XFSC'] = '是'
     index_ = target_data[(target_data['近一年购买一人多座次数'] > 0)].index
     data.loc[index_, 'XFDZ'] = '是'
@@ -258,32 +258,34 @@ def get_download_pax_flt_list(data, date):
 
 def download_pax(flt_list):
     need_close_driver = False
-    # try:
-    for _, flt in flt_list.iterrows():
-        if not os.path.exists('%s%s%s_%s.xlsx' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号'])):
-            if 'driver' not in locals():
-                driver = driver_handler.new_driver('FireFox', pax_dir)
-                need_close_driver = True
-                break
-    pax = pd.DataFrame(None)
-    for _, flt in flt_list.iterrows():
-        if not os.path.exists('%s%s%s_%s.xlsx' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号'])):
-            # try:
-            login_etmanage(driver)
-            etmanage_handler.call_pax_list(driver, flt['OC航班号'], flt['飞行日期'], flt_num_tag_keyword='flightNo', date_tag_name_keyword='flightDate', search_tag_keyword='tktDispBtn', download_tag_keyword='导出EXCEL格式')
-            rename_last_downloaded_file(pax_temporary_dir, pax_dir, '%s_%s.xlsx' % (flt['飞行日期'], flt['OC航班号']))
-            # except:
-            #     pass
-        pax_per_flt = pd.read_excel('%s%s%s_%s.xlsx' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号']))
-        pax = pd.concat([pax, pax_per_flt], ignore_index=True, join='outer')
-
-# finally:
-    if need_close_driver:
-        driver_handler.close_driver(driver)
+    try:
+        for _, flt in flt_list.iterrows():
+            if not os.path.exists('%s%s%s_%s.xls' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号'])):
+                if 'driver' not in locals():
+                    driver = driver_handler.new_driver('FireFox', pax_temporary_dir)
+                    need_close_driver = True
+                    login_etmanage(driver)
+                    break
+        pax = pd.DataFrame(None)
+        for _, flt in flt_list.iterrows():
+            if not os.path.exists('%s%s%s_%s.xls' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号'])):
+                etmanage_handler.call_pax_list(driver, flt['OC航班号'], flt['飞行日期'])
+                rename_last_downloaded_file(pax_temporary_dir, pax_dir, '%s_%s.xls' % (flt['飞行日期'], flt['OC航班号']))
+            pax_per_flt = pd.read_html('%s%s%s_%s.xls' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号']), encoding='gbk')[0]
+            pax_per_flt.rename(columns=pax_per_flt.loc[1], inplace=True)
+            pax_per_flt.drop([0, 1], inplace=True)
+            pax_per_flt.reset_index(drop=True, inplace=True)
+            pax_per_flt['票号'] = pax_per_flt['票号'].str.replace('-', '')
+            pax_per_flt['旅客证件'] = pax_per_flt['旅客证件'].str.split(':').str[-1]
+            pax = pd.concat([pax, pax_per_flt], ignore_index=True, join='outer')
+    finally:
+        if need_close_driver:
+            driver_handler.close_driver(driver)
+    pax.dropna(subset=['旅客证件'], inplace=True)
     return pax
 
 
-def rename_last_downloaded_file(temporary_dir, destination_dir, new_file_name, time_out=5):
+def rename_last_downloaded_file(temporary_dir, destination_dir, new_file_name, time_out=60):
 
     def get_last_downloaded_file_path(temporary_dir):
         count = 0
@@ -306,33 +308,32 @@ def rename_last_downloaded_file(temporary_dir, destination_dir, new_file_name, t
     shutil.move(get_last_downloaded_file_path(temporary_dir), os.path.join(destination_dir, new_file_name))
 
 
-def labelling_matched_data_local(pax):
+def labelling_matched_data_local(data, pax):
+    # pax 票号、旅客姓名、旅客证件
+    pax.drop(columns=['票联', '旅客类型', '票价', '舱位', '航段', '航段状态', 'I标识', 'D标识', '票价计算', '联系方式', '出票渠道', '代理人编码'], inplace=True)
     ins = pd.read_excel('%s%sINS.xlsx' % (source_dir, os.sep), sheet_name='sheet1', header=0, index_col=0)
     # dly = pd.read_excel('%s%sDLY.xlsx' % (source_dir, os.sep), sheet_name='sheet1', header=0, index_col=0)
     dmg = pd.read_excel('%s%sDMG.xlsx' % (source_dir, os.sep), sheet_name='sheet1', header=0, index_col=0)
     com = pd.read_excel('%s%sCOM.xlsx' % (source_dir, os.sep), sheet_name='sheet1', header=0, index_col=0)
 
-    p = {
-        'fltDate': pax['flt_date'].values,
-        'fltNo': pax['flt_num'].values,
-        'station': pax['station'].values,
-        'lastname': pax['last_name'].values,
-        'firstname': pax['first_name'].values,
-        'Ppt': pax['passport_number'].values,
-    }
-
-    q1 = pd.merge(pd.DataFrame(p).dropna(), dmg['证件号'].to_frame().dropna(), left_on='Ppt',
-                  right_on='证件号').drop_duplicates()
-    # q2 = pd.merge(pd.DataFrame(p).dropna(), dly['证件号'].to_frame().dropna(), left_on='Ppt', right_on='证件号').drop_duplicates()
-    q3 = pd.merge(pd.DataFrame(p).dropna(), ins['被保险人证件号码'].to_frame().dropna(), left_on='Ppt',
-                  right_on='被保险人证件号码').drop_duplicates()
-    q4 = pd.merge(pd.DataFrame(p).dropna(), com[['旅客姓名', '护照号']].dropna(), left_on='Ppt',
-                  right_on='护照号').drop_duplicates()
-
-    q1.to_excel('%s%s%s_申报行李破损的出港旅客.xlsx' % (ics_results_dir, os.sep, date), sheet_name='sheet1', encoding='gbk')
-    # q2.to_excel('%s%s%s_申报行李晚到的出港旅客.xlsx' % (ics_results_dir, os.sep, date), sheet_name='sheet1', encoding='gbk')
-    q3.to_excel('%s%s%s_购买保险的出港旅客.xlsx' % (ics_results_dir, os.sep, date), sheet_name='sheet1', encoding='gbk')
-    q4.to_excel('%s%s%s_存在投诉记录的出港旅客.xlsx' % (ics_results_dir, os.sep, date), sheet_name='sheet1', encoding='gbk')
+    pax = pd.merge(pax, dmg['证件号'].to_frame().dropna(), how='left', left_on='旅客证件', right_on='证件号').drop_duplicates()
+    # pax = pd.merge(pax, dly['证件号'].to_frame().dropna(), left_on='Ppt', right_on='证件号').drop_duplicates()
+    pax = pd.merge(pax, ins['被保险人证件号码'].to_frame().dropna(), how='left', left_on='旅客证件', right_on='被保险人证件号码').drop_duplicates()
+    pax = pd.merge(pax, com['护照号'].to_frame().dropna(), how='left', left_on='旅客证件', right_on='护照号').drop_duplicates()
+    data = pd.merge(data, pax, left_on='电子客票号', right_on='票号', how='left')
+    data.fillna('', inplace=True)
+    index_ = data[data['证件号'] != ''].index
+    data.loc[index_, 'XLPS'] = '是'
+    index_ = data[data['被保险人证件号码'] != ''].index
+    data.loc[index_, 'BX'] = '是'
+    index_ = data[data['护照号'] != ''].index
+    data.loc[index_, 'TS'] = '是'
+    index_ = data[data['旅客姓名'] != ''].index
+    data.loc[index_, '姓名'] = data.loc[index_]['旅客姓名']
+    data.drop(columns=['证件号', '被保险人证件号码', '护照号', '票号', '旅客姓名', '旅客证件'], inplace=True)
+    index_ = data[(data['客票状态'] == 'O') & ((data['XLPS'] != '') | (data['BX'] != '') | (data['TS'] != '') | (data['LCSCJ'] != '') | (data['LCSCF'] != '') | (data['XFSC'] != '') | (data['LCGQ'] != '') | (data['XFDZ'] != '') | (data['PJBMG'] != '')) & (data['姓名'] != '')].index
+    data.loc[index_, '查询'] = '是'
+    return data
 
 
 if __name__ == "__main__":
@@ -347,20 +348,21 @@ if __name__ == "__main__":
     data, file_path = get_data()
     flt_list = get_download_pax_flt_list(data, date)
     pax = download_pax(flt_list)
-    # target_index = get_target_index(data, date)
-    # data = labelling_matched_data(data, target_index)
-    # picked_data = pick_data(data, target_index)
-    # data = reset_init_status(data, picked_data, target_index, file_path)
-    # picked_data = pick_data(data, target_index)
-    # picked_data = describe_data(picked_data, comment_only)
-    # window_object = activate_app(app_path, title_keyword)
-    # activate_window(window_object)
-    # maximize_window(window_object)
-    # x_start, y_start, x_end, y_end = adjust_location()
-    # switch_input_language()
-    # login_ics(x_start, y_start, x_end, y_end)
-    # check_or_comment(data, picked_data, file_path, comment_only)
-    # alert_box('备注完毕，结果请查看%s文件，感谢使用！' % file_path, '退出程序')
+    target_index = get_target_index(data, date)
+    data = labelling_matched_data(data, target_index)
+    data = labelling_matched_data_local(data, pax)
+    picked_data = pick_data(data, target_index)
+    data = reset_init_status(data, picked_data, target_index, file_path)
+    picked_data = pick_data(data, target_index)
+    picked_data = describe_data(picked_data, comment_only)
+    window_object = activate_app(app_path, title_keyword)
+    activate_window(window_object)
+    maximize_window(window_object)
+    x_start, y_start, x_end, y_end = adjust_location()
+    switch_input_language()
+    login_ics(x_start, y_start, x_end, y_end)
+    check_or_comment(data, picked_data, file_path, comment_only)
+    alert_box('备注完毕，结果请查看%s文件，感谢使用！' % file_path, '退出程序')
     # except:
     #     alert_box('程序出现问题，正在退出程序，感谢使用！', '退出程序')
     # finally:

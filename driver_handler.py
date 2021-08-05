@@ -22,7 +22,7 @@ def new_driver(engine, save_file_dir):
             profile.set_preference('browser.download.folderList', 2)  # custom location
             profile.set_preference('browser.download.manager.showWhenStarting', False)
             profile.set_preference('browser.download.dir', save_file_dir)
-            profile.set_preference('browser.helperApps.neverAsk.saveToDisk', 'text/csv')
+            profile.set_preference('browser.helperApps.neverAsk.saveToDisk', 'application/vnd.ms-excel')
             profile.set_preference('security.tls.version.min', 1)
             options = FirefoxOptions()
             driver = webdriver.Firefox(profile, options=options, executable_path=geckodriver_driver)

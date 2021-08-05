@@ -6,7 +6,7 @@ import re
 
 
 additional_data_columns = ['姓名', '查询', '备注']  # 改动需调整源码
-labels = ['LCSCJ', 'LCSCF', 'LCGQ', 'XFSC', 'XFDZ', 'PJBMG']  # 改动需调整filter
+labels = ['LCSCJ', 'LCSCF', 'LCGQ', 'XFSC', 'XFDZ', 'PJBMG', 'XLPS', 'TS', 'BX']  # 改动需调整filter
 
 
 config_dir = 'config'
@@ -17,7 +17,7 @@ sales_dir = 'sales'
 driver_dir = 'driver'
 flt_dir = 'flt'
 pax_dir = 'pax'
-pax_temporary_dir = 'paxTemporary'
+pax_temporary_dir = os.getcwd() + os.sep + 'paxTemporary'
 chrome_driver = '%s%schromedriver%s%s%schromedriver.exe' % (driver_dir, os.sep, os.sep, '91', os.sep)
 phantomjs_driver = '%s%sphantomjs%s%s%sphantomjs.exe' % (driver_dir, os.sep, os.sep, 'bin', os.sep)
 geckodriver_driver = '%s%sgeckodriver%s%s%sgeckodriver.exe' % (driver_dir, os.sep, os.sep, '0.29.1', os.sep)
@@ -99,14 +99,14 @@ client_stations = reload_config_client_station('client', 'stations')
 comment_only = bool(int(reload_config_value('client', 'comment')))
 
 
-# for file in [source_file, chrome_driver, phantomjs_driver, geckodriver_driver]
-#     check_file(file)
-# upgrade_miles = pd.read_excel(source_file)
-# upgrade_miles.fillna(0, inplace=True)
-# upgrade_miles['city_pair'] = upgrade_miles['departure'] + '-' + upgrade_miles['destination']
-# upgrade_miles.set_index(['city_pair'], inplace=True)
+for file in [source_file, chrome_driver, phantomjs_driver, geckodriver_driver]:
+    check_file(file)
+upgrade_miles = pd.read_excel(source_file)
+upgrade_miles.fillna(0, inplace=True)
+upgrade_miles['city_pair'] = upgrade_miles['departure'] + '-' + upgrade_miles['destination']
+upgrade_miles.set_index(['city_pair'], inplace=True)
 
-# upgrade_miles['miles_y_to_j'] = upgrade_miles['miles_y_to_j'].astype('float64')
+upgrade_miles['miles_y_to_j'] = upgrade_miles['miles_y_to_j'].astype('float64')
 
 
 def set_app_path():
