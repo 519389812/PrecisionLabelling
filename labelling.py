@@ -257,31 +257,32 @@ def get_download_pax_flt_list(data, date):
 
 
 def download_pax(flt_list):
-    need_close_driver = False
-    try:
-        for _, flt in flt_list.iterrows():
-            if not os.path.exists('%s%s%s_%s.xls' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号'])):
-                if 'driver' not in locals():
-                    driver = driver_handler.new_driver('FireFox', pax_temporary_dir)
-                    need_close_driver = True
-                    login_etmanage(driver)
-                    break
-        pax = pd.DataFrame(None)
-        for _, flt in flt_list.iterrows():
-            if not os.path.exists('%s%s%s_%s.xls' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号'])):
-                etmanage_handler.call_pax_list(driver, flt['OC航班号'], flt['飞行日期'])
-                rename_last_downloaded_file(pax_temporary_dir, pax_dir, '%s_%s.xls' % (flt['飞行日期'], flt['OC航班号']))
-            pax_per_flt = pd.read_html('%s%s%s_%s.xls' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号']), encoding='gbk')[0]
-            pax_per_flt.rename(columns=pax_per_flt.loc[1], inplace=True)
-            pax_per_flt.drop([0, 1], inplace=True)
-            pax_per_flt.reset_index(drop=True, inplace=True)
-            pax_per_flt['票号'] = pax_per_flt['票号'].str.replace('-', '')
-            pax_per_flt['旅客证件'] = pax_per_flt['旅客证件'].str.split(':').str[-1]
-            pax = pd.concat([pax, pax_per_flt], ignore_index=True, join='outer')
-    finally:
-        if need_close_driver:
-            driver_handler.close_driver(driver)
-    pax.dropna(subset=['旅客证件'], inplace=True)
+    pax = pd.DataFrame(None)
+    if flt_list.shape[0] > 0:
+        need_close_driver = False
+        try:
+            for _, flt in flt_list.iterrows():
+                if not os.path.exists('%s%s%s_%s.xls' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号'])):
+                    if 'driver' not in locals():
+                        driver = driver_handler.new_driver('FireFox', pax_temporary_dir)
+                        need_close_driver = True
+                        login_etmanage(driver)
+                        break
+            for _, flt in flt_list.iterrows():
+                if not os.path.exists('%s%s%s_%s.xls' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号'])):
+                    etmanage_handler.call_pax_list(driver, flt['OC航班号'], flt['飞行日期'])
+                    rename_last_downloaded_file(pax_temporary_dir, pax_dir, '%s_%s.xls' % (flt['飞行日期'], flt['OC航班号']))
+                pax_per_flt = pd.read_html('%s%s%s_%s.xls' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号']), encoding='gbk')[0]
+                pax_per_flt.rename(columns=pax_per_flt.loc[1], inplace=True)
+                pax_per_flt.drop([0, 1], inplace=True)
+                pax_per_flt.reset_index(drop=True, inplace=True)
+                pax_per_flt['票号'] = pax_per_flt['票号'].str.replace('-', '')
+                pax_per_flt['旅客证件'] = pax_per_flt['旅客证件'].str.split(':').str[-1]
+                pax = pd.concat([pax, pax_per_flt], ignore_index=True, join='outer')
+        finally:
+            if need_close_driver:
+                driver_handler.close_driver(driver)
+        pax.dropna(subset=['旅客证件'], inplace=True)
     return pax
 
 
@@ -309,30 +310,31 @@ def rename_last_downloaded_file(temporary_dir, destination_dir, new_file_name, t
 
 
 def labelling_matched_data_local(data, pax):
-    # pax 票号、旅客姓名、旅客证件
-    pax.drop(columns=['票联', '旅客类型', '票价', '舱位', '航段', '航段状态', 'I标识', 'D标识', '票价计算', '联系方式', '出票渠道', '代理人编码'], inplace=True)
-    ins = pd.read_excel('%s%sINS.xlsx' % (source_dir, os.sep), sheet_name='sheet1', header=0, index_col=0)
-    # dly = pd.read_excel('%s%sDLY.xlsx' % (source_dir, os.sep), sheet_name='sheet1', header=0, index_col=0)
-    dmg = pd.read_excel('%s%sDMG.xlsx' % (source_dir, os.sep), sheet_name='sheet1', header=0, index_col=0)
-    com = pd.read_excel('%s%sCOM.xlsx' % (source_dir, os.sep), sheet_name='sheet1', header=0, index_col=0)
+    if pax.shape[0] > 0:
+        # pax 票号、旅客姓名、旅客证件
+        pax.drop(columns=['票联', '旅客类型', '票价', '舱位', '航段', '航段状态', 'I标识', 'D标识', '票价计算', '联系方式', '出票渠道', '代理人编码'], inplace=True)
+        ins = pd.read_excel('%s%sINS.xlsx' % (source_dir, os.sep), sheet_name='sheet1', header=0, index_col=0)
+        # dly = pd.read_excel('%s%sDLY.xlsx' % (source_dir, os.sep), sheet_name='sheet1', header=0, index_col=0)
+        dmg = pd.read_excel('%s%sDMG.xlsx' % (source_dir, os.sep), sheet_name='sheet1', header=0, index_col=0)
+        com = pd.read_excel('%s%sCOM.xlsx' % (source_dir, os.sep), sheet_name='sheet1', header=0, index_col=0)
 
-    pax = pd.merge(pax, dmg['证件号'].to_frame().dropna(), how='left', left_on='旅客证件', right_on='证件号').drop_duplicates()
-    # pax = pd.merge(pax, dly['证件号'].to_frame().dropna(), left_on='Ppt', right_on='证件号').drop_duplicates()
-    pax = pd.merge(pax, ins['被保险人证件号码'].to_frame().dropna(), how='left', left_on='旅客证件', right_on='被保险人证件号码').drop_duplicates()
-    pax = pd.merge(pax, com['护照号'].to_frame().dropna(), how='left', left_on='旅客证件', right_on='护照号').drop_duplicates()
-    data = pd.merge(data, pax, left_on='电子客票号', right_on='票号', how='left')
-    data.fillna('', inplace=True)
-    index_ = data[data['证件号'] != ''].index
-    data.loc[index_, 'XLPS'] = '是'
-    index_ = data[data['被保险人证件号码'] != ''].index
-    data.loc[index_, 'BX'] = '是'
-    index_ = data[data['护照号'] != ''].index
-    data.loc[index_, 'TS'] = '是'
-    index_ = data[data['旅客姓名'] != ''].index
-    data.loc[index_, '姓名'] = data.loc[index_]['旅客姓名']
-    data.drop(columns=['证件号', '被保险人证件号码', '护照号', '票号', '旅客姓名', '旅客证件'], inplace=True)
-    index_ = data[(data['客票状态'] == 'O') & ((data['XLPS'] != '') | (data['BX'] != '') | (data['TS'] != '') | (data['LCSCJ'] != '') | (data['LCSCF'] != '') | (data['XFSC'] != '') | (data['LCGQ'] != '') | (data['XFDZ'] != '') | (data['PJBMG'] != '')) & (data['姓名'] != '')].index
-    data.loc[index_, '查询'] = '是'
+        pax = pd.merge(pax, dmg['证件号'].to_frame().dropna(), how='left', left_on='旅客证件', right_on='证件号').drop_duplicates()
+        # pax = pd.merge(pax, dly['证件号'].to_frame().dropna(), left_on='Ppt', right_on='证件号').drop_duplicates()
+        pax = pd.merge(pax, ins['被保险人证件号码'].to_frame().dropna(), how='left', left_on='旅客证件', right_on='被保险人证件号码').drop_duplicates()
+        pax = pd.merge(pax, com['护照号'].to_frame().dropna(), how='left', left_on='旅客证件', right_on='护照号').drop_duplicates()
+        data = pd.merge(data, pax, left_on='电子客票号', right_on='票号', how='left')
+        data.fillna('', inplace=True)
+        index_ = data[data['证件号'] != ''].index
+        data.loc[index_, 'XLPS'] = '是'
+        index_ = data[data['被保险人证件号码'] != ''].index
+        data.loc[index_, 'BX'] = '是'
+        index_ = data[data['护照号'] != ''].index
+        data.loc[index_, 'TS'] = '是'
+        index_ = data[data['旅客姓名'] != ''].index
+        data.loc[index_, '姓名'] = data.loc[index_]['旅客姓名']
+        data.drop(columns=['证件号', '被保险人证件号码', '护照号', '票号', '旅客姓名', '旅客证件'], inplace=True)
+        index_ = data[(data['客票状态'] == 'O') & ((data['XLPS'] != '') | (data['BX'] != '') | (data['TS'] != '') | (data['LCSCJ'] != '') | (data['LCSCF'] != '') | (data['XFSC'] != '') | (data['LCGQ'] != '') | (data['XFDZ'] != '') | (data['PJBMG'] != '')) & (data['姓名'] != '')].index
+        data.loc[index_, '查询'] = '是'
     return data
 
 
