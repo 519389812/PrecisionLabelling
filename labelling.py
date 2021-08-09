@@ -152,8 +152,9 @@ def check_or_comment(data, picked_data, file_path, comment_only):
             flt_date = row['飞行日期']
             flt_date = change_ics_date_format(flt_date)
             ticket = row['电子客票号']
+            pax_name = row['姓名']
             if not comment_only:
-                if row['姓名'] == '':
+                if pax_name == '':
                     keyboard_write_etkd(ticket)
                     text = copy_text(x_start, y_start, x_end, y_end)
                     if not text_has_ticket(text):
@@ -172,8 +173,6 @@ def check_or_comment(data, picked_data, file_path, comment_only):
                         continue
                     data.loc[index_, '姓名'] = pax_name
                     data.loc[index_, '查询'] = '是'
-            else:
-                pax_name = row['姓名']
             if station in client_auth_stations:
                 name_list = [''.join(name) for name in product(*pypinyin.pinyin(pax_name, style=pypinyin.NORMAL, heteronym=True))]
                 found = False
