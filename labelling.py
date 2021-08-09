@@ -91,7 +91,7 @@ def reset_init_status(data, picked_data, target_index, file_path):
 def describe_data(picked_data, comment_only):
     num_of_data = picked_data.shape[0]
     if not comment_only:
-        unhandled_data = picked_data[picked_data['查询'] == '']
+        unhandled_data = picked_data[(picked_data['查询'] == '') | ((picked_data['查询'] == '是') & (picked_data['备注'] == ''))]
     else:
         unhandled_data = picked_data[(picked_data['备注'] == '') & (picked_data['姓名'] != '') & (picked_data['航段始发机场'].isin(client_auth_stations) == True)]
     if unhandled_data.shape[0] == 0:
@@ -153,24 +153,25 @@ def check_or_comment(data, picked_data, file_path, comment_only):
             flt_date = change_ics_date_format(flt_date)
             ticket = row['电子客票号']
             if not comment_only:
-                keyboard_write_etkd(ticket)
-                text = copy_text(x_start, y_start, x_end, y_end)
-                if not text_has_ticket(text):
-                    data.loc[index_, '查询'] = '未能提取客票'
-                    data.loc[index_, '备注'] = '未能提取旅客'
-                    continue
-                ticket_data = ticket_data_collector.details_extract(text)
-                if ticket_data:
-                    if ticket_data['first_name'] != '':
-                        pax_name = ticket_data['last_name'] + '/' + ticket_data['first_name']
+                if row['姓名'] == '':
+                    keyboard_write_etkd(ticket)
+                    text = copy_text(x_start, y_start, x_end, y_end)
+                    if not text_has_ticket(text):
+                        data.loc[index_, '查询'] = '未能提取客票'
+                        data.loc[index_, '备注'] = '未能提取旅客'
+                        continue
+                    ticket_data = ticket_data_collector.details_extract(text)
+                    if ticket_data:
+                        if ticket_data['first_name'] != '':
+                            pax_name = ticket_data['last_name'] + '/' + ticket_data['first_name']
+                        else:
+                            pax_name = ticket_data['last_name']
                     else:
-                        pax_name = ticket_data['last_name']
-                else:
-                    data.loc[index_, '查询'] = '客票信息提取异常'
-                    data.loc[index_, '备注'] = '未能提取旅客'
-                    continue
-                data.loc[index_, '姓名'] = pax_name
-                data.loc[index_, '查询'] = '是'
+                        data.loc[index_, '查询'] = '客票信息提取异常'
+                        data.loc[index_, '备注'] = '未能提取旅客'
+                        continue
+                    data.loc[index_, '姓名'] = pax_name
+                    data.loc[index_, '查询'] = '是'
             else:
                 pax_name = row['姓名']
             if station in client_auth_stations:
