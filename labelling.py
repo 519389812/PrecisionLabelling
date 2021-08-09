@@ -91,7 +91,7 @@ def reset_init_status(data, picked_data, target_index, file_path):
 def describe_data(picked_data, comment_only):
     num_of_data = picked_data.shape[0]
     if not comment_only:
-        unhandled_data = picked_data[(picked_data['查询'] == '') | ((picked_data['查询'] == '是') & (picked_data['备注'] == ''))]
+        unhandled_data = picked_data[(picked_data['查询'] == '') | ((picked_data['查询'] == '是') & (picked_data['备注'] == '') & (picked_data['航段始发机场'].isin(client_auth_stations) == True))]
     else:
         unhandled_data = picked_data[(picked_data['备注'] == '') & (picked_data['姓名'] != '') & (picked_data['航段始发机场'].isin(client_auth_stations) == True)]
     if unhandled_data.shape[0] == 0:
