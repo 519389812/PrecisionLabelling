@@ -9,42 +9,45 @@ def locate_top_left(top_left_image_path):
     return top_left_location
 
 
-def keyboard_write(command: str, clean_screen_press: list = None, set_soe_press: str = 'esc', execute_press: str = 'f12', interval: float = 0.1, count: int = 1) -> None:
+def keyboard_write(command: str, clean_screen_press: list = None, set_soe_press: str or list = 'esc', execute_press: str = 'f12', interval: float = 0.1, count: int = 1) -> None:
     keyboard_clean_screen(clean_screen_press)
-    keyboard_press(set_soe_press)
+    keyboard_set_soe(set_soe_press)
     pyautogui.write(command, interval=interval)
     keyboard_press(execute_press)
 
 
-def keyboard_write_si(username: str, password: str, level: str, office: str, clean_screen_press: list = None, set_soe_press: str = 'esc', execute_press: str = 'f12', interval: float = 0.3, count: int = 1):
+def keyboard_write_si(username: str, password: str, level: str, office: str, clean_screen_press: list = None, set_soe_press: str or list = 'esc', execute_press: str = 'f12', interval: float = 0.3, count: int = 1):
     keyboard_clean_screen(clean_screen_press)
-    keyboard_press(set_soe_press)
+    keyboard_set_soe(set_soe_press)
     pyautogui.write('si', interval=interval)
     keyboard_press('f12', interval=interval, count=count)
     pyautogui.write('%s/%s/%s/%s' % (username, password, level, office), interval=interval)
     keyboard_press(execute_press)
 
 
-def keyboard_write_so(clean_screen_press: list = None, set_soe_press: str = 'esc', execute_press: str = 'f12', interval: float = 0.1, count: int = 1):
+def keyboard_write_so(clean_screen_press: list = None, set_soe_press: str or list = 'esc', execute_press: str = 'f12', interval: float = 0.1, count: int = 1):
     keyboard_clean_screen(clean_screen_press)
-    keyboard_press(set_soe_press)
+    keyboard_set_soe(set_soe_press)
     pyautogui.write('so', interval=interval)
     keyboard_press(execute_press)
 
 
-def keyboard_write_ft(flt_num: str, flt_date: str, station: str = 'CAN', clean_screen_press: list = None, set_soe_press: str = 'esc', execute_press: str = 'f12', interval: float = 0.1, count: int = 1) -> None:
+def keyboard_write_ft(flt_num: str, flt_date: str, station: str = 'CAN', clean_screen_press: list = None, set_soe_press: str or list = 'esc', execute_press: str = 'f12', interval: float = 0.1, count: int = 1) -> None:
     keyboard_clean_screen(clean_screen_press)
-    keyboard_press(set_soe_press)
+    keyboard_set_soe(set_soe_press)
     command = 'ft%s/%s/%s' % (flt_num, flt_date, station)
     pyautogui.write(command, interval=interval)
     keyboard_press(execute_press)
 
 
-def keyboard_write_pd(flt_num: str, flt_date: str, *additions: str, cabin_class='', station: str = 'CAN', clean_screen_press: list = None, set_soe_press: str = 'esc', execute_press: str = 'f12', interval: float = 0.1) -> None:
+def keyboard_write_pd(flt_num: str, flt_date: str, cabin_class, station: str = 'CAN', *additions: str, clean_screen_press: list = None, set_soe_press: str or list = 'esc', execute_press: str = 'f12', interval: float = 0.1, count: int = 1) -> None:
     keyboard_clean_screen(clean_screen_press)
-    keyboard_press(set_soe_press)
+    keyboard_set_soe(set_soe_press)
     command = 'pd%s/%s' % (flt_num, flt_date)
-    command += cabin_class + '*'
+    if cabin_class:
+        command += cabin_class + '*'
+    else:
+        command += '*'
     command += station
     if additions:
         for addition in additions:
@@ -53,17 +56,17 @@ def keyboard_write_pd(flt_num: str, flt_date: str, *additions: str, cabin_class=
     keyboard_press(execute_press)
 
 
-def keyboard_write_pr(count: int, clean_screen_press: list = None, set_soe_press: str = 'esc', execute_press: str = 'f12', interval: float = 0.1) -> None:
+def keyboard_write_pr(count: int, clean_screen_press: list = None, set_soe_press: str or list = 'esc', execute_press: str = 'f12', interval: float = 0.1) -> None:
     keyboard_clean_screen(clean_screen_press)
-    keyboard_press(set_soe_press)
+    keyboard_set_soe(set_soe_press)
     command = 'pr' + str(count) + 'pd'
     pyautogui.write(command, interval=interval)
     keyboard_press(execute_press)
 
 
-def keyboard_write_fb(flt_num: str, flt_date: str, cabin_class, bn: str, station: str = 'CAN', clean_screen_press: list = None, set_soe_press: str = 'esc', execute_press: str = 'f12', interval: float = 0.1, count: int = 1) -> None:
+def keyboard_write_fb(flt_num: str, flt_date: str, cabin_class, bn: str, station: str = 'CAN', clean_screen_press: list = None, set_soe_press: str or list = 'esc', execute_press: str = 'f12', interval: float = 0.1, count: int = 1) -> None:
     keyboard_clean_screen(clean_screen_press)
-    keyboard_press(set_soe_press)
+    keyboard_set_soe(set_soe_press)
     command = 'pr%s/%s' % (flt_num, flt_date)
     if cabin_class:
         command += cabin_class + '*'
@@ -74,55 +77,33 @@ def keyboard_write_fb(flt_num: str, flt_date: str, cabin_class, bn: str, station
     keyboard_press(execute_press)
 
 
-def keyboard_write_pn(count: int = 1, clean_screen_press: list = None, set_soe_press: str = 'esc', execute_press: str = 'f12', interval: float = 0.1) -> None:
+def keyboard_write_pn(count: int = 1, clean_screen_press: list = None, set_soe_press: str or list = 'esc', execute_press: str = 'f12', interval: float = 0.1) -> None:
     keyboard_clean_screen(clean_screen_press)
-    keyboard_press(set_soe_press)
+    keyboard_set_soe(set_soe_press)
     command = 'pn' + str(count)
     pyautogui.write(command, interval=interval)
     keyboard_press(execute_press)
 
 
-def keyboard_write_pl(count: int = 1, clean_screen_press: list = None, set_soe_press: str = 'esc', execute_press: str = 'f12', interval: float = 0.1) -> None:
+def keyboard_write_pl(count: int = 1, clean_screen_press: list = None, set_soe_press: str or list = 'esc', execute_press: str = 'f12', interval: float = 0.1) -> None:
     keyboard_clean_screen(clean_screen_press)
-    keyboard_press(set_soe_press)
+    keyboard_set_soe(set_soe_press)
     command = 'pl' + str(count)
     pyautogui.write(command, interval=interval)
     keyboard_press(execute_press)
 
 
-def keyboard_write_pf(count: int = 1, clean_screen_press: list = None, set_soe_press: str = 'esc', execute_press: str = 'f12', interval: float = 0.1) -> None:
+def keyboard_write_pf(count: int = 1, clean_screen_press: list = None, set_soe_press: str or list = 'esc', execute_press: str = 'f12', interval: float = 0.1) -> None:
     keyboard_clean_screen(clean_screen_press)
-    keyboard_press(set_soe_press)
+    keyboard_set_soe(set_soe_press)
     command = 'pf' + str(count)
     pyautogui.write(command, interval=interval)
     keyboard_press(execute_press)
 
 
-def keyboard_write_pu(*additions: str, clean_screen_press: list = None, set_soe_press: str = 'esc', execute_press: str = 'f12', interval: float = 0.1, count: int = 1) -> None:
+def keyboard_write_etkd(tkt_num: str, clean_screen_press: list = None, set_soe_press: str or list = 'esc', execute_press: str = 'f12', interval: float = 0.1) -> None:
     keyboard_clean_screen(clean_screen_press)
-    keyboard_press(set_soe_press)
-    command = 'pu' + str(count)
-    if additions:
-        for addition in additions:
-            command += ',' + addition
-    pyautogui.write(command, interval=interval)
-    keyboard_press(execute_press)
-
-
-def keyboard_write_pre_pu(*additions: str, clean_screen_press: list = None, set_soe_press: str = 'esc', execute_press: str = 'f12', interval: float = 0.1, count: int = 1) -> None:
-    keyboard_clean_screen(clean_screen_press)
-    keyboard_press(set_soe_press)
-    command = 'pu#' + str(count)
-    if additions:
-        for addition in additions:
-            command += ',' + addition
-    pyautogui.write(command, interval=interval)
-    keyboard_press(execute_press)
-
-
-def keyboard_write_etkd(tkt_num: str, clean_screen_press: list = None, set_soe_press: str = 'esc', execute_press: str = 'f12', interval: float = 0.1) -> None:
-    keyboard_clean_screen(clean_screen_press)
-    keyboard_press(set_soe_press)
+    keyboard_set_soe(set_soe_press)
     command = 'etkd:tn/' + tkt_num
     pyautogui.write(command, interval=interval)
     keyboard_press(execute_press)
@@ -150,7 +131,17 @@ def keyboard_hot_key(*keys: str, interval: float = 0.2) -> None:
 def keyboard_clean_screen(key_list: list = None, interval: float = 0.2) -> None:
     if key_list is None:
         key_list = ['ctrl', 'a']
-    eval('pyautogui.hotkey(%s, interval=%f)' % (str(key_list)[1:-1], interval))
+    if len(key_list) == 1:
+        keyboard_press(key_list[0], interval=interval)
+    else:
+        eval('pyautogui.hotkey(%s, interval=%f)' % (str(key_list)[1:-1], interval))
+
+
+def keyboard_set_soe(key: str or list = None, interval: float = 0.3) -> None:
+    if type(key) is str:
+        keyboard_press(key, interval=interval)
+    elif type(key) is list:
+        eval('pyautogui.hotkey(%s, interval=%f)' % (str(key)[1:-1], interval))
 
 
 # >>> pyautogui.moveTo(100, 100, 2, pyautogui.easeInQuad)     # start slow, end fast
