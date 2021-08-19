@@ -40,7 +40,7 @@ def keyboard_write_ft(flt_num: str, flt_date: str, station: str = 'CAN', clean_s
     keyboard_press(execute_press)
 
 
-def keyboard_write_pd(flt_num: str, flt_date: str, cabin_class, station: str = 'CAN', *additions: str, clean_screen_press: list = None, set_soe_press: str or list = 'esc', execute_press: str = 'f12', interval: float = 0.1, count: int = 1) -> None:
+def keyboard_write_pd(flt_num: str, flt_date: str, *additions: str, cabin_class='', station: str = 'CAN', clean_screen_press: list = None, set_soe_press: str or list = 'esc', execute_press: str = 'f12', interval: float = 0.1, count: int = 1) -> None:
     keyboard_clean_screen(clean_screen_press)
     keyboard_set_soe(set_soe_press)
     command = 'pd%s/%s' % (flt_num, flt_date)
@@ -97,6 +97,28 @@ def keyboard_write_pf(count: int = 1, clean_screen_press: list = None, set_soe_p
     keyboard_clean_screen(clean_screen_press)
     keyboard_set_soe(set_soe_press)
     command = 'pf' + str(count)
+    pyautogui.write(command, interval=interval)
+    keyboard_press(execute_press)
+
+
+def keyboard_write_pu(*additions: str, clean_screen_press: list = None, set_soe_press: str or list = 'esc', execute_press: str = 'f12', interval: float = 0.1, count: int = 1) -> None:
+    keyboard_clean_screen(clean_screen_press)
+    keyboard_set_soe(set_soe_press)
+    command = 'pu' + str(count)
+    if additions:
+        for addition in additions:
+            command += ',' + addition
+    pyautogui.write(command, interval=interval)
+    keyboard_press(execute_press)
+
+
+def keyboard_write_pre_pu(*additions: str, clean_screen_press: list = None, set_soe_press: str or list = 'esc', execute_press: str = 'f12', interval: float = 0.1, count: int = 1) -> None:
+    keyboard_clean_screen(clean_screen_press)
+    keyboard_set_soe(set_soe_press)
+    command = 'pu#' + str(count)
+    if additions:
+        for addition in additions:
+            command += ',' + addition
     pyautogui.write(command, interval=interval)
     keyboard_press(execute_press)
 
