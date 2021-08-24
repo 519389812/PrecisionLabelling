@@ -2,6 +2,8 @@ import requests
 from PIL import Image
 from box_body import ask_box, password_box
 from driver_handler import switch_by_id, switch_by_link
+import random
+import time
 
 
 captcha_url = 'https://etmanage.csair.com/Manage/authImg'
@@ -91,6 +93,7 @@ def call_pax_list(driver, flt_num, flt_date):
     flt_num_element = driver.find_element_by_name('flightNo')
     flt_num_element.send_keys(flt_num)
     driver.implicitly_wait(2)
+    time.sleep(random.randint(1, 3) + random.random())
     # 去除日期选择框的readonly属性
     js = 'document.getElementsByName("flightDate")[0].removeAttribute("readonly")'
     driver.execute_script(js)
@@ -107,6 +110,8 @@ def call_pax_list(driver, flt_num, flt_date):
     search_button_element = driver.find_element_by_name('tktDispBtn')
     search_button_element.click()
     driver.implicitly_wait(100)
+    time.sleep(random.randint(1, 3) + random.random())
     download_button_element = driver.find_element_by_xpath('//input[@value="导出EXCEL格式"]')
     download_button_element.click()
     driver.implicitly_wait(10)
+    time.sleep(random.randint(1, 3) + random.random())

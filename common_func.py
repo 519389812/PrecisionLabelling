@@ -6,7 +6,7 @@ import re
 from window_handler import locate_on_window, locate_on_window_center
 from ics_handler import *
 import configparser
-from settings import config_dir
+from settings import config_dir, auth_level
 from window_handler import is_app_opened, open_app, get_window_by_title
 from dateutil.relativedelta import relativedelta
 
@@ -118,22 +118,20 @@ def is_ics_login(text, signed_in_text='SIGNED IN'):
     return False
 
 
-def login_ics(x_start, y_start, x_end, y_end):
-    choice = yes_no_box('是否已经登录工号？', 'ICS登录')
-    if choice != '是':
-        while True:
-            username, password, level, office = login_ics_box()
-            keyboard_write_si(username, password, level, office)
-            text = copy_text(x_start, y_start, x_end, y_end)
-            if is_ics_login(text):
-                break
+def login_ics(x_start, y_start, x_end, y_end, username, password, level, station):
+    while True:
+        office = station + auth_level[station]
+        keyboard_write_si(username, password, level, office)
+        text = copy_text(x_start, y_start, x_end, y_end)
+        if is_ics_login(text):
+            break
+        else:
+            choice = yes_no_box('登录ics失败，是否重新输入？', 'ICS登录')
+            if choice == '是':
+                username, password = login_ics_box()
             else:
-                choice = yes_no_box('登录ics失败，是否重新输入？', 'ICS登录')
-                if choice == '是':
-                    continue
-                else:
-                    alert_box('您正在退出程序，感谢使用', '退出程序')
-                    os._exit(0)
+                alert_box('您正在退出程序，感谢使用', '退出程序')
+                os._exit(0)
 
 
 if __name__ == '__main__':

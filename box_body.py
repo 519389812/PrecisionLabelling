@@ -7,14 +7,14 @@ import tkinter
 
 def login_ics_box() -> (str, str, str, str):
     while True:
-        login_command = pyautogui.password(text='请输入用户信息，格式为“账号/密码/账号级别/office号”', title='ICS登录', default='', mask='*')
+        login_command = pyautogui.password(text='请输入用户信息，格式为“账号/密码”', title='ICS登录', default='', mask='*')
         if not login_command:
             os._exit(0)
-        login_command_pattern = re.compile(r'\d+/\w+/\d+/\w+')
+        login_command_pattern = re.compile(r'\d+/\w+')
         match = login_command_pattern.match(login_command)
         if match:
-            user_name, password, level, office = match.group().split('/')
-            return user_name, password, level, office
+            username, password = match.group().split('/')
+            return username, password
         else:
             select = yes_no_box('输入格式有误，是否重新输入？', '格式错误')
             if select == '是':

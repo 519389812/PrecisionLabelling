@@ -143,7 +143,8 @@ def create_label(row):
     return label
 
 
-def check_or_comment(data, picked_data, file_path, comment_only):
+def check_or_comment(data, picked_data, file_path, comment_only, username, password):
+    login_station = None
     try:
         for index_, row in picked_data.iterrows():
             label = create_label(row)
@@ -153,6 +154,8 @@ def check_or_comment(data, picked_data, file_path, comment_only):
             flt_date = change_ics_date_format(flt_date)
             ticket = row['电子客票号']
             pax_name = row['姓名']
+            if login_station != station:
+                login_ics(x_start, y_start, x_end, y_end, username, password, auth_level, station)
             if not comment_only:
                 if pax_name == '':
                     keyboard_write_etkd(ticket)
@@ -250,7 +253,7 @@ def login_gsms(driver):
 
 
 def get_download_pax_flt_list(data, date):
-    data = data[(data['客票状态'] == 'O') & (data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & (data['航段性质'] == '国际')]
+    data = data[(data['客票状态'] == 'O') & (data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & (data['航段始发机场'].isin(client_auth_stations) == True)]
     data = data.drop_duplicates(['OC航班号'])
     flt_list = data[['OC航班号', '飞行日期']]
     return flt_list
@@ -335,18 +338,17 @@ def labelling_matched_data_local(data, pax):
         data.drop(columns=['证件号', '被保险人证件号码', '护照号', '票号', '旅客姓名', '旅客证件'], inplace=True)
         index_ = data[(data['客票状态'] == 'O') & ((data['XLPS'] != '') | (data['BX'] != '') | (data['TS'] != '') | (data['LCSCJ'] != '') | (data['LCSCF'] != '') | (data['XFSC'] != '') | (data['LCGQ'] != '') | (data['XFDZ'] != '') | (data['PJBMG'] != '')) & (data['姓名'] != '')].index
         data.loc[index_, '查询'] = '是'
+        data.sort_values(by=['航段始发机场'], inplace=True)
     return data
 
 
 if __name__ == "__main__":
     date = get_date()
-    if not app_path or not client_auth_stations:
+    if not app_path:
         alert_box('欢迎使用本程序！首次使用请根据提示进行初始化设置。', '欢迎')
         set_app_path()
-        set_ics_auth_station()
         config = reload_config()
         app_path = reload_config_value('app', 'app_path')
-        client_auth_stations = reload_config_client_station('client', 'auth')
     data, file_path = get_data()
     flt_list = get_download_pax_flt_list(data, date)
     pax = download_pax(flt_list)
@@ -362,8 +364,8 @@ if __name__ == "__main__":
     maximize_window(window_object)
     x_start, y_start, x_end, y_end = adjust_location()
     switch_input_language()
-    login_ics(x_start, y_start, x_end, y_end)
-    check_or_comment(data, picked_data, file_path, comment_only)
+    username, password = login_ics_box()
+    check_or_comment(data, picked_data, file_path, comment_only, username, password)
     alert_box('备注完毕，结果请查看%s文件，感谢使用！' % file_path, '退出程序')
     # except:
     #     alert_box('程序出现问题，正在退出程序，感谢使用！', '退出程序')

@@ -4,10 +4,12 @@ import configparser
 from box_body import open_file_box, ask_box, yes_no_box, alert_box
 import re
 
+auth_level = '86'
+auth_office = {'CAN': '007', 'KWE': '005', 'HAK': '005', 'SWA': '005'}
+client_auth_stations = list(auth_office.keys())
 
 additional_data_columns = ['姓名', '查询', '备注']  # 改动需调整源码
 labels = ['LCSCJ', 'LCSCF', 'LCGQ', 'XFSC', 'XFDZ', 'PJBMG', 'XLPS', 'TS', 'BX']  # 改动需调整filter
-
 
 config_dir = 'config'
 config_file = '%s%sconfig.ini' % (config_dir, os.sep)
@@ -42,7 +44,6 @@ config_init = {
         ['paste_end_location_offset', '635,370'],
     ],
     'client': [
-        ['auth', ''],
         ['stations', 'CAN/URC/PKX/SYX/PVG/HAK/SHA/KWE/SWA/CSX'],
         ['comment', '1'],
     ],
@@ -94,7 +95,6 @@ check_config_file()
 config = reload_config()
 app_path = reload_config_value('app', 'app_path')
 title_keyword = config.get('app', 'title_keyword')
-client_auth_stations = reload_config_client_station('client', 'auth')
 client_stations = reload_config_client_station('client', 'stations')
 comment_only = bool(int(reload_config_value('client', 'comment')))
 
@@ -114,18 +114,3 @@ def set_app_path():
     config.set('app', 'app_path', app_path)
     with open(config_file, 'w') as f:
         config.write(f)
-
-
-def set_ics_auth_station():
-    while True:
-        stations = ask_box('请输入您使用的场站（格式为：CAN，输入多个时：CAN/PKX/URC）：', '场站设置').strip('/').upper()
-        pattern = re.compile(r'^([A-Z]{3}/?)+$')
-        if pattern.match(stations):
-            config.set('client', 'auth', stations)
-            with open(config_file, 'w') as f:
-                config.write(f)
-                break
-        else:
-            select = yes_no_box('输入格式不正确，是否重新输入？', '格式错误')
-            if select == '否':
-                os._exit(0)
