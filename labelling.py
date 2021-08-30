@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 from window_handler import *
@@ -155,7 +156,9 @@ def check_or_comment(data, picked_data, file_path, comment_only, username, passw
             ticket = row['电子客票号']
             pax_name = row['姓名']
             if login_station != station:
-                login_ics(x_start, y_start, x_end, y_end, username, password, auth_level, station)
+                if station in client_auth_stations:
+                    keyboard_write_so()
+                    login_station = login_ics(x_start, y_start, x_end, y_end, username, password, auth_level, station)
             if not comment_only:
                 if pax_name == '':
                     keyboard_write_etkd(ticket)
@@ -342,6 +345,11 @@ def labelling_matched_data_local(data, pax):
     return data
 
 
+def make_pivot_table(data, date):
+    pivot_table = pd.pivot_table(data, index=['航段始发机场'], columns=labels, aggfunc=np.count_nonzero, fill_value=0)
+    pivot_table.to_excel(result_dir + os.sep + date + '.xlsx')
+
+
 if __name__ == "__main__":
     date = get_date()
     if not app_path:
@@ -366,6 +374,7 @@ if __name__ == "__main__":
     switch_input_language()
     username, password = login_ics_box()
     check_or_comment(data, picked_data, file_path, comment_only, username, password)
+    make_pivot_table(data, date)
     alert_box('备注完毕，结果请查看%s文件，感谢使用！' % file_path, '退出程序')
     # except:
     #     alert_box('程序出现问题，正在退出程序，感谢使用！', '退出程序')

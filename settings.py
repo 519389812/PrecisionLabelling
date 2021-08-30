@@ -19,6 +19,7 @@ sales_dir = 'sales'
 driver_dir = 'driver'
 flt_dir = 'flt'
 pax_dir = 'pax'
+result_dir = 'result'
 pax_temporary_dir = os.getcwd() + os.sep + 'paxTemporary'
 chrome_driver = '%s%schromedriver%s%s%schromedriver.exe' % (driver_dir, os.sep, os.sep, '91', os.sep)
 phantomjs_driver = '%s%sphantomjs%s%s%sphantomjs.exe' % (driver_dir, os.sep, os.sep, 'bin', os.sep)
@@ -44,7 +45,7 @@ config_init = {
         ['paste_end_location_offset', '635,370'],
     ],
     'client': [
-        ['stations', 'CAN/URC/PKX/SYX/PVG/HAK/SHA/KWE/SWA/CSX'],
+        ['stations', 'CAN/URC/PVG/HAK/SHA/KWE/SWA/CGO'],
         ['comment', '1'],
     ],
 }
@@ -55,7 +56,7 @@ def make_dir(dir_path):
         os.mkdir(dir_path)
 
 
-for dir_ in [config_dir, task_dir, source_dir, sales_dir, driver_dir, pax_dir, pax_temporary_dir]:
+for dir_ in [config_dir, task_dir, source_dir, sales_dir, driver_dir, pax_dir, result_dir, pax_temporary_dir]:
     make_dir(dir_)
 
 
