@@ -5,7 +5,7 @@ from box_body import open_file_box, ask_box, yes_no_box, alert_box
 import re
 
 auth_level = '86'
-auth_office = {'CAN': '007', 'KWE': '005', 'HAK': '005', 'SWA': '005', 'SHA': '005', 'PVG': '005', 'CGO': '005'}
+auth_office = {'CAN': '007', 'KWE': '005', 'HAK': '005', 'SWA': '005', 'SHA': '005', 'PVG': '005', 'CGO': '002'}
 client_auth_stations = list(auth_office.keys())
 
 additional_data_columns = ['姓名', '查询', '备注']  # 改动需调整源码

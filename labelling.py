@@ -346,7 +346,9 @@ def labelling_matched_data_local(data, pax):
 
 
 def make_pivot_table(data, date):
-    pivot_table = pd.pivot_table(data, index=['航段始发机场'], columns=labels, aggfunc=np.count_nonzero, fill_value=0)
+    def count_func(x):
+        return len(x[x == '是'])
+    pivot_table = pd.pivot_table(data, index=['航段始发机场'], values=labels, aggfunc=count_func)
     pivot_table.to_excel(result_dir + os.sep + date + '.xlsx')
 
 
