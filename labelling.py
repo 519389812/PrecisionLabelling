@@ -66,7 +66,7 @@ def save_data(data, file_path):
 
 
 def get_target_index(data, date):
-    target_index = data[(data['客票状态'] == 'O') & (data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & data['航段始发机场'].isin(client_stations) == True].index
+    target_index = data[(data['客票状态'] == 'O') & (data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & data['航段始发机场'].isin(client_auth_stations) == True].index
     if len(target_index) == 0:
         alert_box('无符合条件数据，程序退出。', '无数据')
         os._exit(0)
@@ -256,7 +256,7 @@ def login_gsms(driver):
 
 
 def get_download_pax_flt_list(data, date):
-    data = data[(data['客票状态'] == 'O') & (data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & (data['航段始发机场'].isin(client_auth_stations) == True)]
+    data = data[(data['客票状态'] == 'O') & (data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & (data['航段始发机场'].isin(client_stations) == True)]
     data = data.drop_duplicates(['OC航班号'])
     flt_list = data[['OC航班号', '飞行日期']]
     return flt_list
