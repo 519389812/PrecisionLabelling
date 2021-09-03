@@ -45,7 +45,6 @@ config_init = {
         ['paste_end_location_offset', '635,370'],
     ],
     'client': [
-        ['stations', 'CAN/URC/PVG/HAK/SHA/KWE/SWA/CGO'],
         ['comment', '1'],
     ],
 }
