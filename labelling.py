@@ -157,6 +157,8 @@ def check_or_comment(data, picked_data, file_path, comment_only, username, passw
             pax_name = row['姓名']
             if login_station != station:
                 if station in client_auth_stations:
+                    if auth_office[station] == "000":
+                        continue
                     keyboard_write_so()
                     login_station = login_ics(x_start, y_start, x_end, y_end, username, password, auth_level, station)
             if not comment_only:
@@ -256,7 +258,7 @@ def login_gsms(driver):
 
 
 def get_download_pax_flt_list(data, date):
-    data = data[(data['客票状态'] == 'O') & (data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & (data['航段始发机场'].isin(client_stations) == True)]
+    data = data[(data['客票状态'] == 'O') & (data['OC承运人'] == 'CZ') & (data['飞行日期'] == date) & (data['航段始发机场'].isin(client_auth_stations) == True)]
     data = data.drop_duplicates(['OC航班号'])
     flt_list = data[['OC航班号', '飞行日期']]
     return flt_list

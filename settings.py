@@ -5,7 +5,7 @@ from box_body import open_file_box, ask_box, yes_no_box, alert_box
 import re
 
 auth_level = '86'
-auth_office = {'CAN': '007', 'KWE': '005', 'HAK': '005', 'SWA': '005', 'SHA': '005', 'PVG': '005', 'CGO': '002'}
+auth_office = {'CAN': '007', 'KWE': '005', 'HAK': '005', 'SWA': '005', 'SHA': '005', 'PVG': '005', 'CGO': '002', 'URC': '000'}
 client_auth_stations = list(auth_office.keys())
 
 additional_data_columns = ['姓名', '查询', '备注']  # 改动需调整源码
@@ -88,15 +88,10 @@ def reload_config_value(section, option):
     return config.get(section, option)
 
 
-def reload_config_client_station(section, option):
-    return list(filter(None, config.get(section, option).split('/')))
-
-
 check_config_file()
 config = reload_config()
 app_path = reload_config_value('app', 'app_path')
 title_keyword = config.get('app', 'title_keyword')
-client_stations = reload_config_client_station('client', 'stations')
 comment_only = bool(int(reload_config_value('client', 'comment')))
 
 
