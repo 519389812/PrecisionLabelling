@@ -100,6 +100,7 @@ def describe_data(picked_data, comment_only):
         os._exit(0)
     else:
         alert_box('筛选出符合条件的数据 %d 条，其中已处理的数据有 %d 条，未处理的数据有 %d 条。' % (num_of_data, num_of_data - unhandled_data.shape[0], unhandled_data.shape[0]), '概况')
+        unhandled_data.sort_values(by=['航段始发机场'], inplace=True)
         return unhandled_data
 
 
@@ -343,7 +344,6 @@ def labelling_matched_data_local(data, pax):
         data.drop(columns=['证件号', '被保险人证件号码', '护照号', '票号', '旅客姓名', '旅客证件'], inplace=True)
         index_ = data[(data['客票状态'] == 'O') & ((data['XLPS'] != '') | (data['BX'] != '') | (data['TS'] != '') | (data['LCSCJ'] != '') | (data['LCSCF'] != '') | (data['XFSC'] != '') | (data['LCGQ'] != '') | (data['XFDZ'] != '') | (data['PJBMG'] != '')) & (data['姓名'] != '')].index
         data.loc[index_, '查询'] = '是'
-        data.sort_values(by=['航段始发机场'], inplace=True)
     return data
 
 
