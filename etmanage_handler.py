@@ -94,7 +94,7 @@ def call_pax_list(driver, flt_num, flt_date):
         flt_num_element = driver.find_element_by_name('flightNo')
         flt_num_element.send_keys(flt_num)
         driver.implicitly_wait(2)
-        time.sleep(random.uniform(1, 2))
+        time.sleep(random.uniform(0.5, 1))
         # 去除日期选择框的readonly属性
         js = 'document.getElementsByName("flightDate")[0].removeAttribute("readonly")'
         driver.execute_script(js)
@@ -105,7 +105,7 @@ def call_pax_list(driver, flt_num, flt_date):
         # arguments[0]表示第一个参数，argument[1]表示第二个参数
         driver.execute_script("arguments[0].value = '%s'" % flt_date, flt_date_element)
         driver.implicitly_wait(2)
-        time.sleep(random.uniform(1, 2))
+        time.sleep(random.uniform(0.5, 1))
         # driver.f  缺少查找父元素
         radio_element = driver.find_element_by_class_name('midDiv')
         radio_element = radio_element.find_elements_by_name('searchType')[-1]
@@ -113,11 +113,11 @@ def call_pax_list(driver, flt_num, flt_date):
         search_button_element = driver.find_element_by_name('tktDispBtn')
         search_button_element.click()
         driver.implicitly_wait(100)
-        time.sleep(random.uniform(1, 2))
+        time.sleep(random.uniform(0.5, 1))
         download_button_element = driver.find_element_by_xpath('//input[@value="导出EXCEL格式"]')
         download_button_element.click()
         driver.implicitly_wait(10)
-        time.sleep(random.uniform(1, 2))
+        time.sleep(random.uniform(0.5, 1))
         return True
     except:
         return
