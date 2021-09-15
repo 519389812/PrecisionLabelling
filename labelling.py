@@ -315,13 +315,16 @@ def rename_last_downloaded_file(temporary_dir, destination_dir, new_file_name, t
         return count
 
     count = 0
-    while '.part' in get_last_downloaded_file_path(temporary_dir):
-        time.sleep(1)
-        count = count_time(count)
-        if not count:
-            return
-    shutil.move(get_last_downloaded_file_path(temporary_dir), os.path.join(destination_dir, new_file_name))
-    return True
+    try:
+        while '.part' in get_last_downloaded_file_path(temporary_dir):
+            time.sleep(1)
+            count = count_time(count)
+            if not count:
+                return
+        shutil.move(get_last_downloaded_file_path(temporary_dir), os.path.join(destination_dir, new_file_name))
+        return True
+    except:
+        return
 
 
 def labelling_matched_data_local(data, pax):
