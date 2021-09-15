@@ -84,36 +84,40 @@ def login_by_headless(driver, session, inside=True):
 
 
 def call_pax_list(driver, flt_num, flt_date):
-    driver.switch_to.default_content()
-    driver.switch_to.frame(driver.find_elements_by_tag_name('iframe')[0])
-    ticket_element = driver.find_element_by_link_text('客票查询')
-    ticket_element.click()
-    driver.switch_to.default_content()
-    driver.switch_to.frame(driver.find_elements_by_tag_name('iframe')[1])
-    flt_num_element = driver.find_element_by_name('flightNo')
-    flt_num_element.send_keys(flt_num)
-    driver.implicitly_wait(2)
-    time.sleep(random.randint(1, 2) + random.random())
-    # 去除日期选择框的readonly属性
-    js = 'document.getElementsByName("flightDate")[0].removeAttribute("readonly")'
-    driver.execute_script(js)
-    flt_date_element = driver.find_element_by_name('flightDate')
-    # 修改日期选择框的value
-    # execute_script()第一个参数是设置value，第二个参数表示获取的元素对象
-    # arguments[0]可以帮我们把selenium的元素传入到JavaScript语句中，arguments指的是execute_script()方法中js代码后面的所有参数
-    # arguments[0]表示第一个参数，argument[1]表示第二个参数
-    driver.execute_script("arguments[0].value = '%s'" % flt_date, flt_date_element)
-    driver.implicitly_wait(2)
-    time.sleep(random.randint(1, 2) + random.random())
-    # driver.f  缺少查找父元素
-    radio_element = driver.find_element_by_class_name('midDiv')
-    radio_element = radio_element.find_elements_by_name('searchType')[-1]
-    radio_element.click()
-    search_button_element = driver.find_element_by_name('tktDispBtn')
-    search_button_element.click()
-    driver.implicitly_wait(100)
-    time.sleep(random.randint(1, 3) + random.random())
-    download_button_element = driver.find_element_by_xpath('//input[@value="导出EXCEL格式"]')
-    download_button_element.click()
-    driver.implicitly_wait(10)
-    time.sleep(random.randint(1, 3) + random.random())
+    try:
+        driver.switch_to.default_content()
+        driver.switch_to.frame(driver.find_elements_by_tag_name('iframe')[0])
+        ticket_element = driver.find_element_by_link_text('客票查询')
+        ticket_element.click()
+        driver.switch_to.default_content()
+        driver.switch_to.frame(driver.find_elements_by_tag_name('iframe')[1])
+        flt_num_element = driver.find_element_by_name('flightNo')
+        flt_num_element.send_keys(flt_num)
+        driver.implicitly_wait(2)
+        time.sleep(random.uniform(1, 2))
+        # 去除日期选择框的readonly属性
+        js = 'document.getElementsByName("flightDate")[0].removeAttribute("readonly")'
+        driver.execute_script(js)
+        flt_date_element = driver.find_element_by_name('flightDate')
+        # 修改日期选择框的value
+        # execute_script()第一个参数是设置value，第二个参数表示获取的元素对象
+        # arguments[0]可以帮我们把selenium的元素传入到JavaScript语句中，arguments指的是execute_script()方法中js代码后面的所有参数
+        # arguments[0]表示第一个参数，argument[1]表示第二个参数
+        driver.execute_script("arguments[0].value = '%s'" % flt_date, flt_date_element)
+        driver.implicitly_wait(2)
+        time.sleep(random.uniform(1, 2))
+        # driver.f  缺少查找父元素
+        radio_element = driver.find_element_by_class_name('midDiv')
+        radio_element = radio_element.find_elements_by_name('searchType')[-1]
+        radio_element.click()
+        search_button_element = driver.find_element_by_name('tktDispBtn')
+        search_button_element.click()
+        driver.implicitly_wait(100)
+        time.sleep(random.uniform(1, 2))
+        download_button_element = driver.find_element_by_xpath('//input[@value="导出EXCEL格式"]')
+        download_button_element.click()
+        driver.implicitly_wait(10)
+        time.sleep(random.uniform(1, 2))
+        return True
+    except:
+        return

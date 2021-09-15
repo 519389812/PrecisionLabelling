@@ -279,8 +279,12 @@ def download_pax(flt_list):
                         break
             for _, flt in flt_list.iterrows():
                 if not os.path.exists('%s%s%s_%s.xls' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号'])):
-                    etmanage_handler.call_pax_list(driver, flt['OC航班号'], flt['飞行日期'])
-                    rename_last_downloaded_file(pax_temporary_dir, pax_dir, '%s_%s.xls' % (flt['飞行日期'], flt['OC航班号']))
+                    is_called = etmanage_handler.call_pax_list(driver, flt['OC航班号'], flt['飞行日期'])
+                    if not is_called:
+                        continue
+                    is_downloaded = rename_last_downloaded_file(pax_temporary_dir, pax_dir, '%s_%s.xls' % (flt['飞行日期'], flt['OC航班号']))
+                    if not is_downloaded:
+                        continue
                 pax_per_flt = pd.read_html('%s%s%s_%s.xls' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号']), encoding='gbk')[0]
                 pax_per_flt.rename(columns=pax_per_flt.loc[1], inplace=True)
                 pax_per_flt.drop([0, 1], inplace=True)
@@ -307,15 +311,17 @@ def rename_last_downloaded_file(temporary_dir, destination_dir, new_file_name, t
     def count_time(count):
         count += 1
         if count > time_out:
-            alert_box('下载文件失败，请检查网络连接', '错误')
-            os._exit(0)
+            return
         return count
 
     count = 0
     while '.part' in get_last_downloaded_file_path(temporary_dir):
         time.sleep(1)
         count = count_time(count)
+        if not count:
+            return
     shutil.move(get_last_downloaded_file_path(temporary_dir), os.path.join(destination_dir, new_file_name))
+    return True
 
 
 def labelling_matched_data_local(data, pax):
