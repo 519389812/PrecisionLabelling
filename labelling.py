@@ -92,9 +92,9 @@ def reset_init_status(data, picked_data, target_index, file_path):
 def describe_data(picked_data, comment_only):
     num_of_data = picked_data.shape[0]
     if not comment_only:
-        unhandled_data = picked_data[(picked_data['查询'] == '') | ((picked_data['查询'] == '是') & (picked_data['备注'] == '') & (picked_data['航段始发机场'].isin(client_auth_stations) == True))]
+        unhandled_data = picked_data[(picked_data['查询'] == '是') & (picked_data['备注'] == '') & (picked_data['航段始发机场'].isin(client_auth_stations) == True)]
     else:
-        unhandled_data = picked_data[(picked_data['备注'] == '') & (picked_data['姓名'] != '') & (picked_data['航段始发机场'].isin(client_auth_stations) == True)]
+        unhandled_data = picked_data[(picked_data['查询'] == '是') & (picked_data['备注'] == '') & (picked_data['姓名'] != '') & (picked_data['航段始发机场'].isin(client_auth_stations) == True)]
     if unhandled_data.shape[0] == 0:
         alert_box('筛选出符合条件的数据 %d 条，所有数据已经处理完毕，程序退出' % num_of_data, '完毕')
         os._exit(0)
@@ -375,14 +375,15 @@ if __name__ == "__main__":
         if not run_lightly:
             flt_list = get_download_pax_flt_list(data, date)
             pax = download_pax(flt_list)
-        target_index = get_target_index(data, date)
-        data = labelling_matched_data(data, target_index)
-        if not run_lightly:
+            target_index = get_target_index(data, date)
+            data = labelling_matched_data(data, target_index)
             data = labelling_matched_data_local(data, pax)
-        picked_data = pick_data(data, target_index)
-        data = reset_init_status(data, picked_data, target_index, file_path)
-        picked_data = pick_data(data, target_index)
-        picked_data = describe_data(picked_data, comment_only)
+            picked_data = pick_data(data, target_index)
+            data = reset_init_status(data, picked_data, target_index, file_path)
+            picked_data = pick_data(data, target_index)
+            picked_data = describe_data(picked_data, comment_only)
+        else:
+            picked_data = describe_data(data, comment_only)
         window_object = activate_app(app_path, title_keyword)
         activate_window(window_object)
         maximize_window(window_object)

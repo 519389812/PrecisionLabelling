@@ -58,10 +58,6 @@ def make_dir(dir_path):
         os.mkdir(dir_path)
 
 
-for dir_ in [config_dir, task_dir, source_dir, sales_dir, driver_dir, pax_dir, result_dir, pax_temporary_dir]:
-    make_dir(dir_)
-
-
 def check_config_file():
     if not os.path.exists(config_file):
         with open(config_file, 'w') as f:
@@ -90,6 +86,7 @@ def reload_config_value(section, option):
     return config.get(section, option)
 
 
+make_dir(config_dir)
 check_config_file()
 config = reload_config()
 app_path = reload_config_value('app', 'app_path')
@@ -101,14 +98,18 @@ if run_lightly:
     client_auth_stations = list(auth_office.keys())
 
 
-for file in [source_file, chrome_driver, phantomjs_driver, geckodriver_driver]:
-    check_file(file)
-upgrade_miles = pd.read_excel(source_file)
-upgrade_miles.fillna(0, inplace=True)
-upgrade_miles['city_pair'] = upgrade_miles['departure'] + '-' + upgrade_miles['destination']
-upgrade_miles.set_index(['city_pair'], inplace=True)
-
-upgrade_miles['miles_y_to_j'] = upgrade_miles['miles_y_to_j'].astype('float64')
+if not run_lightly:
+    for dir_ in [task_dir, source_dir, sales_dir, driver_dir, pax_dir, result_dir, pax_temporary_dir]:
+        make_dir(dir_)
+    for file in [source_file, chrome_driver, phantomjs_driver, geckodriver_driver]:
+        check_file(file)
+    upgrade_miles = pd.read_excel(source_file)
+    upgrade_miles.fillna(0, inplace=True)
+    upgrade_miles['city_pair'] = upgrade_miles['departure'] + '-' + upgrade_miles['destination']
+    upgrade_miles.set_index(['city_pair'], inplace=True)
+    upgrade_miles['miles_y_to_j'] = upgrade_miles['miles_y_to_j'].astype('float64')
+else:
+    make_dir(task_dir)
 
 
 def set_app_path():
