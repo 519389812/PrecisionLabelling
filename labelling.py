@@ -364,36 +364,40 @@ def make_pivot_table(data, date):
 
 
 if __name__ == "__main__":
-    date = get_date()
-    if not app_path:
-        alert_box('欢迎使用本程序！首次使用请根据提示进行初始化设置。', '欢迎')
-        set_app_path()
-        config = reload_config()
-        app_path = reload_config_value('app', 'app_path')
-    data, file_path = get_data()
-    flt_list = get_download_pax_flt_list(data, date)
-    pax = download_pax(flt_list)
-    target_index = get_target_index(data, date)
-    data = labelling_matched_data(data, target_index)
-    data = labelling_matched_data_local(data, pax)
-    picked_data = pick_data(data, target_index)
-    data = reset_init_status(data, picked_data, target_index, file_path)
-    picked_data = pick_data(data, target_index)
-    picked_data = describe_data(picked_data, comment_only)
-    window_object = activate_app(app_path, title_keyword)
-    activate_window(window_object)
-    maximize_window(window_object)
-    x_start, y_start, x_end, y_end = adjust_location()
-    switch_input_language()
-    username, password = login_ics_box()
-    check_or_comment(data, picked_data, file_path, comment_only, username, password)
-    make_pivot_table(data, date)
-    alert_box('备注完毕，结果请查看%s文件，感谢使用！' % file_path, '退出程序')
-    # except:
-    #     alert_box('程序出现问题，正在退出程序，感谢使用！', '退出程序')
-    # finally:
-    #     if 'window_object' in locals():
-    #         choice = yes_no_box('是否关闭ICS应用？', '退出程序')
-    #         if choice == '是':
-    #             keyboard_write_so()
-    #             close_window(window_object)
+    try:
+        date = get_date()
+        if not app_path:
+            alert_box('欢迎使用本程序！首次使用请根据提示进行初始化设置。', '欢迎')
+            set_app_path()
+            config = reload_config()
+            app_path = reload_config_value('app', 'app_path')
+        data, file_path = get_data()
+        if not run_lightly:
+            flt_list = get_download_pax_flt_list(data, date)
+            pax = download_pax(flt_list)
+        target_index = get_target_index(data, date)
+        data = labelling_matched_data(data, target_index)
+        if not run_lightly:
+            data = labelling_matched_data_local(data, pax)
+        picked_data = pick_data(data, target_index)
+        data = reset_init_status(data, picked_data, target_index, file_path)
+        picked_data = pick_data(data, target_index)
+        picked_data = describe_data(picked_data, comment_only)
+        window_object = activate_app(app_path, title_keyword)
+        activate_window(window_object)
+        maximize_window(window_object)
+        x_start, y_start, x_end, y_end = adjust_location()
+        switch_input_language()
+        username, password = login_ics_box()
+        check_or_comment(data, picked_data, file_path, comment_only, username, password)
+        make_pivot_table(data, date)
+        alert_box('备注完毕，结果请查看%s文件，感谢使用！' % file_path, '退出程序')
+    except:
+        alert_box('程序出现问题，正在退出程序，感谢使用！', '退出程序')
+    finally:
+        if 'window_object' in locals():
+            choice = yes_no_box('是否关闭ICS应用？', '退出程序')
+            if choice == '是':
+                keyboard_write_so()
+                close_window(window_object)
+

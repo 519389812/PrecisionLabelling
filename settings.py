@@ -4,7 +4,7 @@ import configparser
 from box_body import open_file_box, ask_box, yes_no_box, alert_box
 import re
 
-auth_level = '86'
+auth_level = '91'
 auth_office = {'CAN': '007', 'KWE': '005', 'HAK': '005', 'SWA': '005', 'SHA': '005', 'PVG': '005', 'CGO': '002', 'URC': '000', 'SYX': '002', 'NKG': '000'}
 client_auth_stations = list(auth_office.keys())
 
@@ -46,6 +46,9 @@ config_init = {
     ],
     'client': [
         ['comment', '1'],
+        ['light', '1'],
+        ['auth_office', ''],
+        ['auth_office_code', ''],
     ],
 }
 
@@ -92,6 +95,10 @@ config = reload_config()
 app_path = reload_config_value('app', 'app_path')
 title_keyword = config.get('app', 'title_keyword')
 comment_only = bool(int(reload_config_value('client', 'comment')))
+run_lightly = bool(int(reload_config_value('client', 'lightly')))
+if run_lightly:
+    auth_office = {config.get('client', 'auth_office'): str(config.get('client', 'auth_office_code'))}
+    client_auth_stations = list(auth_office.keys())
 
 
 for file in [source_file, chrome_driver, phantomjs_driver, geckodriver_driver]:
