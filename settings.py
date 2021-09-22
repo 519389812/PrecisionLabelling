@@ -46,7 +46,7 @@ config_init = {
     ],
     'client': [
         ['comment', '1'],
-        ['light', '1'],
+        ['lightly', '1'],
         ['auth_office', ''],
         ['auth_office_code', ''],
     ],
@@ -96,7 +96,6 @@ run_lightly = bool(int(reload_config_value('client', 'lightly')))
 if run_lightly:
     auth_office = {config.get('client', 'auth_office'): str(config.get('client', 'auth_office_code'))}
     client_auth_stations = list(auth_office.keys())
-
 
 if not run_lightly:
     for dir_ in [task_dir, source_dir, sales_dir, driver_dir, pax_dir, result_dir, pax_temporary_dir]:
