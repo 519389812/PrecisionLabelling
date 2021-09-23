@@ -118,7 +118,8 @@ def is_ics_login(text, signed_in_text='SIGNED IN'):
     return False
 
 
-def login_ics(x_start, y_start, x_end, y_end, username, password, level, station):
+def login_ics(x_start, y_start, x_end, y_end, level, station):
+    global username, password
     while True:
         office = station + auth_office[station]
         keyboard_write_si(username, password, level, office)

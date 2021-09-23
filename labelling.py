@@ -146,7 +146,7 @@ def create_label(row):
     return label
 
 
-def check_or_comment(data, picked_data, file_path, comment_only, username, password):
+def check_or_comment(data, picked_data, file_path, comment_only):
     login_station = None
     try:
         for index_, row in picked_data.iterrows():
@@ -162,7 +162,7 @@ def check_or_comment(data, picked_data, file_path, comment_only, username, passw
                     if auth_office[station] == "000":
                         continue
                     keyboard_write_so()
-                    login_station = login_ics(x_start, y_start, x_end, y_end, username, password, auth_level, station)
+                    login_station = login_ics(x_start, y_start, x_end, y_end, auth_level, station)
             if not comment_only:
                 if pax_name == '':
                     keyboard_write_etkd(ticket)
@@ -391,7 +391,7 @@ if __name__ == "__main__":
         x_start, y_start, x_end, y_end = adjust_location()
         switch_input_language()
         username, password = login_ics_box()
-        check_or_comment(data, picked_data, file_path, comment_only, username, password)
+        check_or_comment(data, picked_data, file_path, comment_only)
         make_pivot_table(data, date)
         alert_box('备注完毕，结果请查看%s文件，感谢使用！' % file_path, '退出程序')
     except:
@@ -402,4 +402,3 @@ if __name__ == "__main__":
             if choice == '是':
                 keyboard_write_so()
                 close_window(window_object)
-
