@@ -286,7 +286,10 @@ def download_pax(flt_list):
                     is_downloaded = rename_last_downloaded_file(pax_temporary_dir, pax_dir, '%s_%s.xls' % (flt['飞行日期'], flt['OC航班号']))
                     if not is_downloaded:
                         continue
-                pax_per_flt = pd.read_html('%s%s%s_%s.xls' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号']), encoding='gbk')[0]
+                try:
+                    pax_per_flt = pd.read_html('%s%s%s_%s.xls' % (pax_dir, os.sep, flt['飞行日期'], flt['OC航班号']), encoding='gbk')[0]
+                except:
+                    continue
                 pax_per_flt.rename(columns=pax_per_flt.loc[1], inplace=True)
                 pax_per_flt.drop([0, 1], inplace=True)
                 pax_per_flt.reset_index(drop=True, inplace=True)
