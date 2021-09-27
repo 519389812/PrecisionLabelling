@@ -167,7 +167,7 @@ def check_or_comment(data, picked_data, file_path, comment_only):
                         continue
                     keyboard_write_so()
                     global username, password
-                    login_station, username, password = login_ics(x_start, y_start, x_end, y_end, auth_level, station)
+                    login_station, username, password = login_ics(x_start, y_start, x_end, y_end, auth_level, station, username, password)
             if not comment_only:
                 if pax_name == '':
                     keyboard_write_etkd(ticket)
