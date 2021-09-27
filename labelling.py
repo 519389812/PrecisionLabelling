@@ -14,6 +14,10 @@ import etmanage_handler
 import shutil
 
 
+username = ''
+password = ''
+
+
 def create_new_columns(data, args):
     for column in args:
         if column not in data.columns:
@@ -162,7 +166,8 @@ def check_or_comment(data, picked_data, file_path, comment_only):
                     if auth_office[station] == "000":
                         continue
                     keyboard_write_so()
-                    login_station = login_ics(x_start, y_start, x_end, y_end, auth_level, station)
+                    global username, password
+                    login_station, username, password = login_ics(x_start, y_start, x_end, y_end, auth_level, station)
             if not comment_only:
                 if pax_name == '':
                     keyboard_write_etkd(ticket)

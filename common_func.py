@@ -118,14 +118,13 @@ def is_ics_login(text, signed_in_text='SIGNED IN'):
     return False
 
 
-def login_ics(x_start, y_start, x_end, y_end, level, station):
-    global username, password
+def login_ics(x_start, y_start, x_end, y_end, level, station, username, password):
     while True:
         office = station + auth_office[station]
         keyboard_write_si(username, password, level, office)
         text = copy_text(x_start, y_start, x_end, y_end)
         if is_ics_login(text):
-            return station
+            return station, username, password
         else:
             choice = yes_no_box('登录ics失败，是否重新输入？', 'ICS登录')
             if choice == '是':
