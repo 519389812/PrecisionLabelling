@@ -401,12 +401,10 @@ if __name__ == "__main__":
         username, password = login_ics_box()
         check_or_comment(data, picked_data, file_path, comment_only)
         make_pivot_table(data, date)
-        alert_box('备注完毕，结果请查看%s文件，感谢使用！' % file_path, '退出程序')
     except:
         alert_box('程序出现问题，正在退出程序，感谢使用！', '退出程序')
     finally:
         if 'window_object' in locals():
-            choice = yes_no_box('是否关闭ICS应用？', '退出程序')
-            if choice == '是':
-                keyboard_write_so()
-                close_window(window_object)
+            keyboard_write_so()
+            close_window(window_object)
+            alert_box('备注完毕，结果请查看%s文件，感谢使用！' % file_path, '退出程序')
