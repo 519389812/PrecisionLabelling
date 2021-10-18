@@ -374,7 +374,7 @@ def labelling_matched_ffp_local(data, date):
     ffp.drop(columns=['会员卡号', '票联号', '始发地', '目的地', '航班日期', '承运人（OC)', '航班号', '会员卡级别'], inplace=True)
     data = pd.merge(data, ffp, left_on='电子客票号', right_on='票号', how='left')
     data.fillna('', inplace=True)
-    data['剩余里程'] = data['剩余里程'].str[:-3] + '***'
+    data['剩余里程数'] = data['剩余里程数'].str[:-3] + '***'
     data['邀约活动'] = data['邀约活动'] + ' YE' + data['剩余里程'] + ' GQ' + data['三个月内即将过期']
     data.drop(columns=['票号', '客户标签', '剩余里程数', '三个月内即将过期'], inplace=True)
     return data
