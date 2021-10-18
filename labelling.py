@@ -58,7 +58,8 @@ def get_data():
         data.fillna('', inplace=True)
         data = combine_columns(data)
         data = create_new_columns(data, additional_data_columns + labels)
-        data = reset_columns(data, labels)
+        if not run_lightly:
+            data = reset_columns(data, labels)
         return data, file_path
 
 
@@ -80,7 +81,7 @@ def get_target_index(data, date):
 def pick_data(data, target_index):
     data.replace('\t', '', regex=True, inplace=True)
     target_data = data.loc[target_index, :]
-    picked_data = target_data[(target_data['LCSCJ'] == '是') | (target_data['LCSCF'] == '是') | (target_data['LCGQ'] == '是') | (target_data['XFSC'] == '是') | (target_data['XFDZ'] == '是') | (target_data['PJBMG'] == '是') | (target_data['XLPS'] == '是') | (target_data['BX'] == '是') | (target_data['TS'] == '是')]
+    picked_data = target_data[(target_data['LCSCJ'] == '是') | (target_data['LCSCF'] == '是') | (target_data['LCGQ'] == '是') | (target_data['XFSC'] == '是') | (target_data['XFDZ'] == '是') | (target_data['PJBMG'] == '是') | (target_data['XLPS'] == '是') | (target_data['BX'] == '是') | (target_data['TS'] == '是') | (target_data['邀约活动'] != '')]
     return picked_data
 
 
@@ -147,6 +148,8 @@ def create_label(row):
     for l in labels:
         if row[l] == '是':
             label += l + ' '
+    if row['邀约活动'] != '':
+        label += row['邀约活动']
     return label
 
 
@@ -336,7 +339,7 @@ def rename_last_downloaded_file(temporary_dir, destination_dir, new_file_name, t
         return
 
 
-def labelling_matched_data_local(data, pax):
+def labelling_matched_pax_local(data, pax):
     if pax.shape[0] > 0:
         # pax 票号、旅客姓名、旅客证件
         pax.drop(columns=['票联', '旅客类型', '票价', '舱位', '航段', '航段状态', 'I标识', 'D标识', '票价计算', '联系方式', '出票渠道', '代理人编码'], inplace=True)
@@ -365,6 +368,18 @@ def labelling_matched_data_local(data, pax):
     return data
 
 
+def labelling_matched_ffp_local(data, date):
+    date = date.strip('-')
+    ffp = pd.read_csv('%s%sCZFFP_MemberData_%s.csv' % (ffpmd_dir, os.sep, date), encoding='gbk', converters={'会员卡号': str, '票号': str, '日期': str, '航班号': str})
+    ffp.drop(columns=['会员卡号', '票联号', '始发地', '目的地', '航班日期', '承运人（OC)', '航班号', '会员卡级别'], inplace=True)
+    data = pd.merge(data, ffp, left_on='电子客票号', right_on='票号', how='left')
+    data.fillna('', inplace=True)
+    data['剩余里程'] = data['剩余里程'].str[:-3] + '***'
+    data['邀约活动'] = data['邀约活动'] + ' YE' + data['剩余里程'] + ' GQ' + data['三个月内即将过期']
+    data.drop(columns=['票号', '客户标签', '剩余里程数', '三个月内即将过期'], inplace=True)
+    return data
+
+
 def make_pivot_table(data, date):
     def count_func(x):
         return len(x[x == '是'])
@@ -386,7 +401,8 @@ if __name__ == "__main__":
             pax = download_pax(flt_list)
             target_index = get_target_index(data, date)
             data = labelling_matched_data(data, target_index)
-            data = labelling_matched_data_local(data, pax)
+            data = labelling_matched_pax_local(data, pax)
+            data = labelling_matched_ffp_local(data, date)
             picked_data = pick_data(data, target_index)
             data = reset_init_status(data, picked_data, target_index, file_path)
             picked_data = pick_data(data, target_index)

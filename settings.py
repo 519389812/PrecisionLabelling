@@ -20,6 +20,7 @@ driver_dir = 'driver'
 flt_dir = 'flt'
 pax_dir = 'pax'
 result_dir = 'result'
+ffpmd_dir = 'ffpmd'
 pax_temporary_dir = os.getcwd() + os.sep + 'paxTemporary'
 chrome_driver = '%s%schromedriver%s%s%schromedriver.exe' % (driver_dir, os.sep, os.sep, '91', os.sep)
 phantomjs_driver = '%s%sphantomjs%s%s%sphantomjs.exe' % (driver_dir, os.sep, os.sep, 'bin', os.sep)
@@ -98,7 +99,7 @@ if run_lightly:
     client_auth_stations = list(auth_office.keys())
 
 if not run_lightly:
-    for dir_ in [task_dir, source_dir, sales_dir, driver_dir, pax_dir, result_dir, pax_temporary_dir]:
+    for dir_ in [task_dir, source_dir, sales_dir, driver_dir, pax_dir, result_dir, ffpmd_dir, pax_temporary_dir]:
         make_dir(dir_)
     for file in [source_file, chrome_driver, phantomjs_driver, geckodriver_driver]:
         check_file(file)
